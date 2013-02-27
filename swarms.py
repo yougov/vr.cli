@@ -7,6 +7,8 @@ import pprint
 import urlparse
 import io
 import time
+import sys
+import datetime
 
 import requests
 import keyring
@@ -39,13 +41,26 @@ def get_swarms(home):
 	matches = swarm_pat.finditer(home.text)
 	swarms = {match.group('name'): match.group('path') for match in matches}
 	if not swarms:
-		raise RuntimeError(home.text)
+		print("No swarms found at", home.url, file=sys.stderr)
+		print("Response was", home.text, file=sys.stderr)
+		raise SystemExit(1)
 	return swarms
 
-def countdown(msg):
-	delay = 5
-	print(msg.format(delay))
-	time.sleep(delay)
+def countdown(template):
+	now = datetime.datetime.now()
+	delay = datetime.timedelta(seconds=5)
+	deadline = now + delay
+	remaining = deadline - datetime.datetime.now()
+	while remaining:
+		remaining = deadline - datetime.datetime.now()
+		remaining = max(datetime.timedelta(), remaining)
+		msg = template.format(remaining.total_seconds())
+		print(msg, end=' '*10)
+		sys.stdout.flush()
+		time.sleep(.1)
+		print('\b'*80, end='')
+		sys.stdout.flush()
+	print()
 
 def adapt_resp(resp):
 	stream = io.StringIO(resp.text)
@@ -63,8 +78,8 @@ def swarm(path, tag):
 	return session.post(url, data=data)
 
 def reswarm():
-	swarms = get_swarms(auth())
 	args = get_args()
+	swarms = get_swarms(auth())
 	matched_names = list(args.filter.matches(swarms))
 	print("Matched", len(matched_names), "apps")
 	pprint.pprint(matched_names)
