@@ -27,7 +27,8 @@ class SwarmFilter(unicode):
 
 	def match(self, name):
 		return (
-			not any(re.search(exclude, name) for exclude in self.exclusions)
+			not any(re.search(exclude, name, re.I)
+				for exclude in self.exclusions)
 			and re.match(self, name)
 		)
 
