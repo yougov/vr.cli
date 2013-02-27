@@ -20,13 +20,26 @@ password = keyring.get_password('YOUGOV.LOCAL', username) or getpass.getpass()
 vr_base = 'https://deploy.yougov.net'
 
 class SwarmFilter(unicode):
+	exclusions = []
+
 	def matches(self, names):
-		return (name for name in names if re.match(self, name))
+		return filter(self.match, names)
+
+	def match(self, name):
+		return (
+			not any(re.search(exclude, name) for exclude in self.exclusions)
+			and re.match(self, name)
+		)
+
+class FilterExcludeAction(argparse.Action):
+	def __call__(self, parser, namespace, values, option_string=None):
+		namespace.filter.exclusions.append(values)
 
 def get_args():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('filter', type=SwarmFilter)
 	parser.add_argument('tag')
+	parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
 	return parser.parse_args()
 
 def auth():
