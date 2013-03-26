@@ -80,7 +80,7 @@ def get_lxml_opener(session):
 	"""
 	Given a requests session, return an opener suitable for passing to LXML
 	"""
-	return lambda method, url, values: session.request(url, method=method,
+	return lambda method, url, values: session.request(url=url, method=method,
 		data=values)
 
 def swarm(path, tag):
@@ -88,7 +88,7 @@ def swarm(path, tag):
 	resp = session.get(url)
 	page = lxml.html.fromstring(resp.text)
 	form = page.forms[0]
-	form.fields = dict(tag=tag)
+	form.fields.update(tag=tag)
 	return lxml.html.submit_form(form,
 		open_http=get_lxml_opener(session))
 
