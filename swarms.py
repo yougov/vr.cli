@@ -12,7 +12,7 @@ import datetime
 
 import requests
 import keyring
-import mechanize
+import lxml.html
 
 session = requests.session()
 username = getpass.getuser()
@@ -76,20 +76,21 @@ def countdown(template):
 		sys.stdout.flush()
 	print()
 
-def adapt_resp(resp):
-	stream = io.StringIO(resp.text)
-	stream.geturl = lambda: resp.url
-	return stream
-
+def get_lxml_opener(session):
+	"""
+	Given a requests session, return an opener suitable for passing to LXML
+	"""
+	return lambda method, url, values: session.request(url, method=method,
+		data=values)
 
 def swarm(path, tag):
 	url = urlparse.urljoin(vr_base, path)
 	resp = session.get(url)
-	forms = mechanize.ParseResponse(adapt_resp(resp), backwards_compat=False)
-	f = forms[0]
-	data = dict(f.click_pairs())
-	data['tag'] = tag
-	return session.post(url, data=data)
+	page = lxml.html.fromstring(resp.text)
+	form = page.forms[0]
+	form.fields = dict(tag=tag)
+	return lxml.html.submit_form(form,
+		open_http=get_lxml_opener(session))
 
 def reswarm():
 	args = get_args()
