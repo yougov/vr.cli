@@ -86,7 +86,7 @@ def get_lxml_opener(session):
 def swarm(path, tag):
 	url = urlparse.urljoin(vr_base, path)
 	resp = session.get(url)
-	page = lxml.html.fromstring(resp.text)
+	page = lxml.html.fromstring(resp.text, base_url=resp.url)
 	form = page.forms[0]
 	form.fields.update(tag=tag)
 	return lxml.html.submit_form(form,
