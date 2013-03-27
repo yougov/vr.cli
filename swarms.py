@@ -81,7 +81,7 @@ def get_lxml_opener(session):
 	Given a requests session, return an opener suitable for passing to LXML
 	"""
 	return lambda method, url, values: session.request(url=url, method=method,
-		data=values)
+		data=dict(values))
 
 def swarm(path, tag):
 	url = urlparse.urljoin(vr_base, path)
