@@ -5,7 +5,6 @@ import getpass
 import re
 import pprint
 import urlparse
-import io
 import time
 import sys
 import datetime
