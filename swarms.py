@@ -8,6 +8,8 @@ import urlparse
 import time
 import sys
 import datetime
+import socket
+import os
 
 import requests
 import keyring
@@ -44,7 +46,20 @@ class FilterExcludeAction(argparse.Action):
 		namespace.filter.exclusions.append(values)
 
 class Velociraptor(object):
-	base = 'https://deploy.yougov.net'
+	def _get_base():
+		"""
+		if 'deploy' resolves in your environment, use the hostname for which
+		that name resolves.
+		Override with 'VELOCIRAPTOR_URL'
+		"""
+		try:
+			name, aliaslist, addresslist = socket.gethostbyname_ex('deploy')
+		except socket.gaierror:
+			name = 'deploy'
+		fallback = 'https://{name}/'.format(name=name)
+		return os.environ.get('VELOCIRAPTOR_URL', fallback)
+
+	base = _get_base()
 	session = requests.session()
 
 	@classmethod
@@ -52,6 +67,7 @@ class Velociraptor(object):
 		"""
 		Authenticate to Velociraptor and return the home page
 		"""
+		print("Authenticating to {base}".format(**vars(cls)))
 		resp = cls.session.get(cls.base)
 		if 'baton' in resp.text:
 			resp = cls.session.post(resp.url, data=dict(username=username,
