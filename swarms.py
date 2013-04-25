@@ -14,10 +14,8 @@ import keyring
 import lxml.html
 from jaraco.util import cmdline
 
-session = requests.session()
 username = getpass.getuser()
 password = keyring.get_password('YOUGOV.LOCAL', username) or getpass.getpass()
-vr_base = 'https://deploy.yougov.net'
 
 class SwarmFilter(unicode):
 	"""
@@ -40,12 +38,30 @@ class FilterExcludeAction(argparse.Action):
 	def __call__(self, parser, namespace, values, option_string=None):
 		namespace.filter.exclusions.append(values)
 
-def auth():
-	resp = session.get(vr_base)
-	if 'baton' in resp.text:
-		resp = session.post(resp.url, data=dict(username=username,
-			password=password))
-	return resp
+class Velociraptor(object):
+	base = 'https://deploy.yougov.net'
+	session = requests.session()
+
+	@classmethod
+	def auth(cls):
+		"""
+		Authenticate to Velociraptor and return the home page
+		"""
+		resp = cls.session.get(cls.base)
+		if 'baton' in resp.text:
+			resp = cls.session.post(resp.url, data=dict(username=username,
+				password=password))
+		return resp
+
+	@classmethod
+	def load(cls, path):
+		url = urlparse.urljoin(cls.base, path)
+		return cls.session.get(url)
+
+	@classmethod
+	def submit(cls, form):
+		return lxml.html.submit_form(form,
+			open_http=get_lxml_opener(cls.session))
 
 class Swarm(object):
 	"""
@@ -74,18 +90,15 @@ class Swarm(object):
 		return swarms
 
 	def reswarm(self, tag=None):
-		url = urlparse.urljoin(vr_base, self.path)
-		resp = session.get(url)
+		resp = Velociraptor.load(self.path)
 		page = lxml.html.fromstring(resp.text, base_url=resp.url)
 		form = page.forms[0]
 		if tag:
 			form.fields.update(tag=tag)
-		return lxml.html.submit_form(form,
-			open_http=get_lxml_opener(session))
+		return Velociraptor.submit(form)
 
 	def load_meta(self):
-		url = urlparse.urljoin(vr_base, self.path)
-		resp = session.get(url)
+		resp = Velociraptor.load(self.path)
 		page = lxml.html.fromstring(resp.text, base_url=resp.url)
 		form = page.forms[0]
 		app, recipe, proc = self.name.split('-')
@@ -146,14 +159,13 @@ def first_match_lookup(element):
 		))
 
 def rebuild(app, tag):
-	url = urlparse.urljoin(vr_base, '/build/')
-	resp = session.get(url)
+	resp = Velociraptor.load('/build/')
 	page = lxml.html.fromstring(resp.text, base_url=resp.url)
 	form = page.forms[0]
 	app_lookup = select_lookup(form.inputs['app_id'])
 	form.fields.update(app_id=app_lookup[app])
 	form.fields.update(tag=tag)
-	return lxml.html.submit_form(form, open_http=get_lxml_opener(session))
+	return Velociraptor.submit(form)
 
 class hashabledict(dict):
 	def __hash__(self):
@@ -167,8 +179,7 @@ def unique_builds(swarms):
 	return set(items)
 
 def release(swarm):
-	url = urlparse.urljoin(vr_base, '/release/')
-	resp = session.get(url)
+	resp = Velociraptor.load('/release/')
 	page = lxml.html.fromstring(resp.text, base_url=resp.url)
 	form = page.forms[0]
 	build_lookup = first_match_lookup(form.inputs['build_id'])
@@ -177,7 +188,7 @@ def release(swarm):
 	form.fields.update(build_id=build_lookup[build])
 	recipe = '-'.join([swarm.app, swarm.recipe])
 	form.fields.update(recipe_id=recipe_lookup[recipe])
-	return lxml.html.submit_form(form, open_http=get_lxml_opener(session))
+	return Velociraptor.submit(form)
 
 
 class Reswarm(cmdline.Command):
@@ -189,7 +200,7 @@ class Reswarm(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarms = Swarm.load_all(auth())
+		swarms = Swarm.load_all(Velociraptor.auth())
 		matched = list(args.filter.matches(swarms))
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
@@ -205,7 +216,7 @@ class RebuildAll(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarms = Swarm.load_all(auth())
+		swarms = Swarm.load_all(Velociraptor.auth())
 		swarms = list(args.filter.matches(swarms))
 		print("Matched", len(swarms), "apps")
 		pprint.pprint(swarms)
