@@ -40,13 +40,6 @@ class FilterExcludeAction(argparse.Action):
 	def __call__(self, parser, namespace, values, option_string=None):
 		namespace.filter.exclusions.append(values)
 
-def get_args():
-	parser = argparse.ArgumentParser()
-	parser.add_argument('filter', type=SwarmFilter)
-	parser.add_argument('tag')
-	parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
-	return parser.parse_args()
-
 def auth():
 	resp = session.get(vr_base)
 	if 'baton' in resp.text:
