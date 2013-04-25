@@ -12,12 +12,24 @@ import socket
 import os
 
 import requests
-import keyring
 import lxml.html
 from jaraco.util import cmdline
 
-username = getpass.getuser()
-password = keyring.get_password('YOUGOV.LOCAL', username) or getpass.getpass()
+try:
+	import keyring
+except ImportError:
+	# stub out keyring
+	class keyring:
+		def get_password(*args, **kwargs):
+			return None
+
+def init_credentials():
+	global username, password
+
+	username = getpass.getuser()
+	password = keyring.get_password('YOUGOV.LOCAL', username)
+	if password is None:
+		getpass.getpass("Password for {username}>".format(**vars()))
 
 class HashableDict(dict):
 	def __hash__(self):
@@ -257,6 +269,7 @@ class RebuildAll(cmdline.Command):
 
 
 def handle_command_line():
+	init_credentials()
 	parser = argparse.ArgumentParser()
 	cmdline.Command.add_subparsers(parser)
 	args = parser.parse_args()
