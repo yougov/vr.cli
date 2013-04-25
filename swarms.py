@@ -17,7 +17,7 @@ from jaraco.util import cmdline
 username = getpass.getuser()
 password = keyring.get_password('YOUGOV.LOCAL', username) or getpass.getpass()
 
-class hashabledict(dict):
+class HashableDict(dict):
 	def __hash__(self):
 		return hash(tuple(sorted(self.items())))
 
@@ -221,7 +221,7 @@ class RebuildAll(cmdline.Command):
 	@classmethod
 	def unique_builds(cls, swarms):
 		items = [
-			hashabledict(swarm.build)
+			HashableDict(swarm.build)
 			for swarm in swarms
 		]
 		return set(items)
