@@ -1,0 +1,44 @@
+Cagey
+=====
+
+A command-line interface for wrangling Velociraptor swarms and automating
+some common operations.
+
+Implementation
+==============
+
+This implementation does not rely on any APIs except the conventions of the
+main HTTP-based interface. It parses and submits forms.
+
+Features
+========
+
+``cagey`` supports two sub-commands, reswarm and rebuild-all.
+
+Rebuild All
+-----------
+
+This routine will find swarms matching the filter and peform a forced rebuild,
+re-release, and swarm on those swarms such that they are rebuilt whether or
+not Velociraptor believes there's any advantage to rebuilding. This routine
+will become largely obviated if `Velociraptor issue 19
+<https://bitbucket.org/yougov/velociraptor/issue/19>`_ is implemented.
+
+    cagey rebuild-all MyApp
+
+Reswarm
+-------
+
+This routine will invoke the swarm operation on a swarm at a given tag::
+
+    cagey reswarm MyApp-Recipe_.* 3.0 -x Recipe_Skipped
+
+It takes as its parameters a filter of swarm name, a version number, and
+optionally some excludes.
+
+The name filter is case sensitive, but the excludes are case insensitive.
+
+When the command is executed, the routine will first report which swarms will
+be affected and give a 5 second timer in case the matches were not what the
+user intended. If the routine is not cancelled, it will proceed to swarm each
+swarm in turn.
