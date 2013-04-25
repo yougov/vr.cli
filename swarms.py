@@ -12,6 +12,7 @@ import datetime
 import requests
 import keyring
 import lxml.html
+from jaraco.util import cmdline
 
 session = requests.session()
 username = getpass.getuser()
@@ -134,15 +135,6 @@ def get_lxml_opener(session):
 	return lambda method, url, values: session.request(url=url, method=method,
 		data=dict(values))
 
-def reswarm():
-	args = get_args()
-	swarms = Swarm.load_all(auth())
-	matched = list(args.filter.matches(swarms))
-	print("Matched", len(matched), "apps")
-	pprint.pprint(matched)
-	countdown("Reswarming in {} sec")
-	[swarm.reswarm(args.tag) for swarm in matched]
-
 def select_lookup(element):
 	"""
 	Given an LXML 'select' element, return a dict of Option text -> value
@@ -194,27 +186,56 @@ def release(swarm):
 	form.fields.update(recipe_id=recipe_lookup[recipe])
 	return lxml.html.submit_form(form, open_http=get_lxml_opener(session))
 
-def rebuild_all():
-	args = get_args()
-	swarms = Swarm.load_all(auth())
-	swarms = list(args.filter.matches(swarms))
-	print("Matched", len(swarms), "apps")
-	pprint.pprint(swarms)
-	print('loading swarm metadata...')
-	for swarm in swarms:
-		swarm.load_meta()
-	countdown("Rebuilding in {} sec")
-	for build in unique_builds(swarms):
-		rebuild(**build)
 
-	raw_input("Hit enter to continue once builds are done...")
-	for swarm in swarms:
-		release(swarm)
+class Reswarm(cmdline.Command):
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('filter', type=SwarmFilter)
+		parser.add_argument('tag')
+		parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
 
-	print('swarming new releases...')
-	for swarm in swarms:
-		swarm.reswarm()
+	@classmethod
+	def run(cls, args):
+		swarms = Swarm.load_all(auth())
+		matched = list(args.filter.matches(swarms))
+		print("Matched", len(matched), "apps")
+		pprint.pprint(matched)
+		countdown("Reswarming in {} sec")
+		[swarm.reswarm(args.tag) for swarm in matched]
+
+
+class RebuildAll(cmdline.Command):
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('filter', type=SwarmFilter)
+		parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
+
+	@classmethod
+	def run(cls, args):
+		swarms = Swarm.load_all(auth())
+		swarms = list(args.filter.matches(swarms))
+		print("Matched", len(swarms), "apps")
+		pprint.pprint(swarms)
+		print('loading swarm metadata...')
+		for swarm in swarms:
+			swarm.load_meta()
+		countdown("Rebuilding in {} sec")
+		for build in unique_builds(swarms):
+			rebuild(**build)
+
+		raw_input("Hit enter to continue once builds are done...")
+		for swarm in swarms:
+			release(swarm)
+
+		print('swarming new releases...')
+		for swarm in swarms:
+			swarm.reswarm()
+
+def handle_command_line():
+	parser = argparse.ArgumentParser()
+	cmdline.Command.add_subparsers(parser)
+	args = parser.parse_args()
+	args.action.run(args)
 
 if __name__ == '__main__':
-	reswarm()
-	#rebuild_all()
+	handle_command_line()
