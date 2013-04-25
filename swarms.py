@@ -64,9 +64,15 @@ class Velociraptor(object):
 		return cls.session.get(url)
 
 	@classmethod
+	def open_for_lxml(cls, method, url, values):
+		"""
+		Open a request for lxml using the class' session
+		"""
+		return cls.session.request(url=url, method=method, data=dict(values))
+
+	@classmethod
 	def submit(cls, form):
-		return lxml.html.submit_form(form,
-			open_http=get_lxml_opener(cls.session))
+		return lxml.html.submit_form(form, open_http=cls.open_for_lxml)
 
 class Swarm(object):
 	"""
@@ -139,12 +145,6 @@ def countdown(template):
 		sys.stdout.flush()
 	print()
 
-def get_lxml_opener(session):
-	"""
-	Given a requests session, return an opener suitable for passing to LXML
-	"""
-	return lambda method, url, values: session.request(url=url, method=method,
-		data=dict(values))
 
 def select_lookup(element):
 	"""
