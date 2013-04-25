@@ -101,5 +101,88 @@ def reswarm():
 	countdown("Reswarming in {} sec")
 	[swarm(swarms[name], args.tag) for name in matched_names]
 
+def load_swarm_meta(name, path):
+	url = urlparse.urljoin(vr_base, path)
+	resp = session.get(url)
+	page = lxml.html.fromstring(resp.text, base_url=resp.url)
+	form = page.forms[0]
+	fields = dict(form.fields)
+	app, recipe, proc = name.split('-')
+	return dict(name=name, path=path, app=app, recipe=recipe, **form.fields)
+
+def select_lookup(element):
+	"""
+	Given an LXML 'select' element, return a dict of Option text -> value
+	"""
+	return dict(zip(element.itertext('option'), element.value_options))
+
+def first_match_lookup(element):
+	"""
+	Like select_lookup except if there are multiple options with the same
+	string, prefer the first.
+	"""
+	return dict(
+		zip(
+			reversed(list(element.itertext('option'))),
+			reversed(element.value_options),
+		))
+
+def rebuild(app, tag):
+	url = urlparse.urljoin(vr_base, '/build/')
+	resp = session.get(url)
+	page = lxml.html.fromstring(resp.text, base_url=resp.url)
+	form = page.forms[0]
+	app_lookup = select_lookup(form.inputs['app_id'])
+	form.fields.update(app_id=app_lookup[app])
+	form.fields.update(tag=tag)
+	return lxml.html.submit_form(form, open_http=get_lxml_opener(session))
+
+class hashabledict(dict):
+	def __hash__(self):
+		return hash(tuple(sorted(self.items())))
+
+def unique_builds(swarms):
+	items = [
+		hashabledict({'app': swarm['app'], 'tag': swarm['tag']})
+		for swarm in swarms
+	]
+	return set(items)
+
+def release(swarm):
+	url = urlparse.urljoin(vr_base, '/release/')
+	resp = session.get(url)
+	page = lxml.html.fromstring(resp.text, base_url=resp.url)
+	form = page.forms[0]
+	build_lookup = first_match_lookup(form.inputs['build_id'])
+	recipe_lookup = select_lookup(form.inputs['recipe_id'])
+	build = '-'.join([swarm['app'], swarm['tag']])
+	form.fields.update(build_id=build_lookup[build])
+	recipe = '-'.join([swarm['app'], swarm['recipe']])
+	form.fields.update(recipe_id=recipe_lookup[recipe])
+	return lxml.html.submit_form(form, open_http=get_lxml_opener(session))
+
+def rebuild_all():
+	args = get_args()
+	swarms = get_swarms(auth())
+	matched_names = list(args.filter.matches(swarms))
+	print("Matched", len(matched_names), "apps")
+	pprint.pprint(matched_names)
+	print('loading swarm metadata...')
+	swarms = [load_swarm_meta(name, path)
+		for name, path in swarms.items()
+		if name in matched_names]
+	countdown("Rebuilding in {} sec")
+	for build in unique_builds(swarms):
+		rebuild(**build)
+
+	raw_input("Hit enter to continue once builds are done...")
+	for swarm in swarms:
+		release(swarm)
+
+	print('swarming new releases...')
+	for swarm in swarms:
+		globals()['swarm'](swarm['path'], swarm['tag'])
+
 if __name__ == '__main__':
 	reswarm()
+	#rebuild_all()
