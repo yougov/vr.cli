@@ -20,16 +20,20 @@ password = keyring.get_password('YOUGOV.LOCAL', username) or getpass.getpass()
 vr_base = 'https://deploy.yougov.net'
 
 class SwarmFilter(unicode):
+	"""
+	A regular expression indicating which swarm names to include.
+	"""
 	exclusions = []
+	"additional patterns to exclude"
 
-	def matches(self, names):
-		return filter(self.match, names)
+	def matches(self, swarms):
+		return filter(self.match, swarms)
 
-	def match(self, name):
+	def match(self, swarm):
 		return (
-			not any(re.search(exclude, name, re.I)
+			not any(re.search(exclude, swarm.name, re.I)
 				for exclude in self.exclusions)
-			and re.match(self, name)
+			and re.match(self, swarm.name)
 		)
 
 class FilterExcludeAction(argparse.Action):
@@ -50,15 +54,63 @@ def auth():
 			password=password))
 	return resp
 
-def get_swarms(home):
-	swarm_pat = re.compile('<option value="(?P<path>/swarm/\d+/)">(?P<name>.*?)</option>')
-	matches = swarm_pat.finditer(home.text)
-	swarms = {match.group('name'): match.group('path') for match in matches}
-	if not swarms:
-		print("No swarms found at", home.url, file=sys.stderr)
-		print("Response was", home.text, file=sys.stderr)
-		raise SystemExit(1)
-	return swarms
+class Swarm(object):
+	"""
+	A VR Swarm
+	"""
+	def __init__(self, name, path, **kwargs):
+		self.name = name
+		self.path = path
+		self.__dict__.update(kwargs)
+
+	def __repr__(self):
+		return self.name
+
+	@classmethod
+	def load_all(cls, home):
+		"""
+		Load all swarms as found on the VR homepage
+		"""
+		swarm_pat = re.compile('<option value="(?P<path>/swarm/\d+/)">(?P<name>.*?)</option>')
+		matches = swarm_pat.finditer(home.text)
+		swarms = [Swarm(**match.groupdict()) for match in matches]
+		if not swarms:
+			print("No swarms found at", home.url, file=sys.stderr)
+			print("Response was", home.text, file=sys.stderr)
+			raise SystemExit(1)
+		return swarms
+
+	def reswarm(self, tag=None):
+		url = urlparse.urljoin(vr_base, self.path)
+		resp = session.get(url)
+		page = lxml.html.fromstring(resp.text, base_url=resp.url)
+		form = page.forms[0]
+		if tag:
+			form.fields.update(tag=tag)
+		return lxml.html.submit_form(form,
+			open_http=get_lxml_opener(session))
+
+	def load_meta(self):
+		url = urlparse.urljoin(vr_base, self.path)
+		resp = session.get(url)
+		page = lxml.html.fromstring(resp.text, base_url=resp.url)
+		form = page.forms[0]
+		app, recipe, proc = self.name.split('-')
+		self.__dict__.update(form.fields)
+
+	@property
+	def app(self):
+		app, recipe, proc = self.name.split('-')
+		return app
+
+	@property
+	def recipe(self):
+		app, recipe, proc = self.name.split('-')
+		return recipe
+
+	@property
+	def build(self):
+		return {'app': self.app, 'tag': self.tag}
 
 def countdown(template):
 	now = datetime.datetime.now()
@@ -83,32 +135,14 @@ def get_lxml_opener(session):
 	return lambda method, url, values: session.request(url=url, method=method,
 		data=dict(values))
 
-def swarm(path, tag):
-	url = urlparse.urljoin(vr_base, path)
-	resp = session.get(url)
-	page = lxml.html.fromstring(resp.text, base_url=resp.url)
-	form = page.forms[0]
-	form.fields.update(tag=tag)
-	return lxml.html.submit_form(form,
-		open_http=get_lxml_opener(session))
-
 def reswarm():
 	args = get_args()
-	swarms = get_swarms(auth())
-	matched_names = list(args.filter.matches(swarms))
-	print("Matched", len(matched_names), "apps")
-	pprint.pprint(matched_names)
+	swarms = Swarm.load_all(auth())
+	matched = list(args.filter.matches(swarms))
+	print("Matched", len(matched), "apps")
+	pprint.pprint(matched)
 	countdown("Reswarming in {} sec")
-	[swarm(swarms[name], args.tag) for name in matched_names]
-
-def load_swarm_meta(name, path):
-	url = urlparse.urljoin(vr_base, path)
-	resp = session.get(url)
-	page = lxml.html.fromstring(resp.text, base_url=resp.url)
-	form = page.forms[0]
-	fields = dict(form.fields)
-	app, recipe, proc = name.split('-')
-	return dict(name=name, path=path, app=app, recipe=recipe, **form.fields)
+	[swarm.reswarm(args.tag) for swarm in matched]
 
 def select_lookup(element):
 	"""
@@ -143,7 +177,7 @@ class hashabledict(dict):
 
 def unique_builds(swarms):
 	items = [
-		hashabledict({'app': swarm['app'], 'tag': swarm['tag']})
+		hashabledict(swarm.build)
 		for swarm in swarms
 	]
 	return set(items)
@@ -155,22 +189,21 @@ def release(swarm):
 	form = page.forms[0]
 	build_lookup = first_match_lookup(form.inputs['build_id'])
 	recipe_lookup = select_lookup(form.inputs['recipe_id'])
-	build = '-'.join([swarm['app'], swarm['tag']])
+	build = '-'.join([swarm.app, swarm.tag])
 	form.fields.update(build_id=build_lookup[build])
-	recipe = '-'.join([swarm['app'], swarm['recipe']])
+	recipe = '-'.join([swarm.app, swarm.recipe])
 	form.fields.update(recipe_id=recipe_lookup[recipe])
 	return lxml.html.submit_form(form, open_http=get_lxml_opener(session))
 
 def rebuild_all():
 	args = get_args()
-	swarms = get_swarms(auth())
-	matched_names = list(args.filter.matches(swarms))
-	print("Matched", len(matched_names), "apps")
-	pprint.pprint(matched_names)
+	swarms = Swarm.load_all(auth())
+	swarms = list(args.filter.matches(swarms))
+	print("Matched", len(swarms), "apps")
+	pprint.pprint(swarms)
 	print('loading swarm metadata...')
-	swarms = [load_swarm_meta(name, path)
-		for name, path in swarms.items()
-		if name in matched_names]
+	for swarm in swarms:
+		swarm.load_meta()
 	countdown("Rebuilding in {} sec")
 	for build in unique_builds(swarms):
 		rebuild(**build)
@@ -181,7 +214,7 @@ def rebuild_all():
 
 	print('swarming new releases...')
 	for swarm in swarms:
-		globals()['swarm'](swarm['path'], swarm['tag'])
+		swarm.reswarm()
 
 if __name__ == '__main__':
 	reswarm()
