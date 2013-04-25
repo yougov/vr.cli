@@ -17,6 +17,11 @@ from jaraco.util import cmdline
 username = getpass.getuser()
 password = keyring.get_password('YOUGOV.LOCAL', username) or getpass.getpass()
 
+class hashabledict(dict):
+	def __hash__(self):
+		return hash(tuple(sorted(self.items())))
+
+
 class SwarmFilter(unicode):
 	"""
 	A regular expression indicating which swarm names to include.
@@ -158,38 +163,6 @@ def first_match_lookup(element):
 			reversed(element.value_options),
 		))
 
-def rebuild(app, tag):
-	resp = Velociraptor.load('/build/')
-	page = lxml.html.fromstring(resp.text, base_url=resp.url)
-	form = page.forms[0]
-	app_lookup = select_lookup(form.inputs['app_id'])
-	form.fields.update(app_id=app_lookup[app])
-	form.fields.update(tag=tag)
-	return Velociraptor.submit(form)
-
-class hashabledict(dict):
-	def __hash__(self):
-		return hash(tuple(sorted(self.items())))
-
-def unique_builds(swarms):
-	items = [
-		hashabledict(swarm.build)
-		for swarm in swarms
-	]
-	return set(items)
-
-def release(swarm):
-	resp = Velociraptor.load('/release/')
-	page = lxml.html.fromstring(resp.text, base_url=resp.url)
-	form = page.forms[0]
-	build_lookup = first_match_lookup(form.inputs['build_id'])
-	recipe_lookup = select_lookup(form.inputs['recipe_id'])
-	build = '-'.join([swarm.app, swarm.tag])
-	form.fields.update(build_id=build_lookup[build])
-	recipe = '-'.join([swarm.app, swarm.recipe])
-	form.fields.update(recipe_id=recipe_lookup[recipe])
-	return Velociraptor.submit(form)
-
 
 class Reswarm(cmdline.Command):
 	@classmethod
@@ -224,16 +197,48 @@ class RebuildAll(cmdline.Command):
 		for swarm in swarms:
 			swarm.load_meta()
 		countdown("Rebuilding in {} sec")
-		for build in unique_builds(swarms):
-			rebuild(**build)
+		for build in cls.unique_builds(swarms):
+			cls.rebuild(**build)
 
 		raw_input("Hit enter to continue once builds are done...")
 		for swarm in swarms:
-			release(swarm)
+			cls.release(swarm)
 
 		print('swarming new releases...')
 		for swarm in swarms:
 			swarm.reswarm()
+
+	@classmethod
+	def rebuild(cls, app, tag):
+		resp = Velociraptor.load('/build/')
+		page = lxml.html.fromstring(resp.text, base_url=resp.url)
+		form = page.forms[0]
+		app_lookup = select_lookup(form.inputs['app_id'])
+		form.fields.update(app_id=app_lookup[app])
+		form.fields.update(tag=tag)
+		return Velociraptor.submit(form)
+
+	@classmethod
+	def unique_builds(cls, swarms):
+		items = [
+			hashabledict(swarm.build)
+			for swarm in swarms
+		]
+		return set(items)
+
+	@classmethod
+	def release(cls, swarm):
+		resp = Velociraptor.load('/release/')
+		page = lxml.html.fromstring(resp.text, base_url=resp.url)
+		form = page.forms[0]
+		build_lookup = first_match_lookup(form.inputs['build_id'])
+		recipe_lookup = select_lookup(form.inputs['recipe_id'])
+		build = '-'.join([swarm.app, swarm.tag])
+		form.fields.update(build_id=build_lookup[build])
+		recipe = '-'.join([swarm.app, swarm.recipe])
+		form.fields.update(recipe_id=recipe_lookup[recipe])
+		return Velociraptor.submit(form)
+
 
 def handle_command_line():
 	parser = argparse.ArgumentParser()
