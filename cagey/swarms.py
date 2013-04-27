@@ -29,7 +29,8 @@ def init_credentials():
 	username = getpass.getuser()
 	password = keyring.get_password('YOUGOV.LOCAL', username)
 	if password is None:
-		getpass.getpass("Password for {username}>".format(**vars()))
+		password = getpass.getpass("Password for {username}>".format(
+			username=username))
 
 class HashableDict(dict):
 	def __hash__(self):
