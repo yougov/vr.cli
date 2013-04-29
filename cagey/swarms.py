@@ -272,8 +272,12 @@ class RebuildAll(cmdline.Command):
 def handle_command_line():
 	init_credentials()
 	parser = argparse.ArgumentParser()
+	parser.add_argument('--url',
+		help="Velociraptor URL (defaults to https://deploy, resolved)")
 	cmdline.Command.add_subparsers(parser)
 	args = parser.parse_args()
+	if args.url:
+		Velociraptor.base = args.url
 	args.action.run(args)
 
 if __name__ == '__main__':
