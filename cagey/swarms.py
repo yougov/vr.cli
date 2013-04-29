@@ -29,7 +29,7 @@ Credential = collections.namedtuple('Credential', 'username password')
 
 @jaraco.util.functools.once
 def get_credentials():
-	username = getpass.getuser()
+	username = getattr(Velociraptor, 'username', None) or getpass.getuser()
 	password = keyring.get_password('YOUGOV.LOCAL', username)
 	if password is None:
 		password = getpass.getpass("Password for {username}>".format(
@@ -280,10 +280,13 @@ def handle_command_line():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--url',
 		help="Velociraptor URL (defaults to https://deploy, resolved)")
+	parser.add_argument('--username',
+		help="Override the username used for authentication")
 	cmdline.Command.add_subparsers(parser)
 	args = parser.parse_args()
 	if args.url:
 		Velociraptor.base = args.url
+	Velociraptor.username = args.username
 	args.action.run(args)
 
 if __name__ == '__main__':
