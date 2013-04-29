@@ -27,15 +27,6 @@ except ImportError:
 
 Credential = collections.namedtuple('Credential', 'username password')
 
-@jaraco.util.functools.once
-def get_credentials():
-	username = getattr(Velociraptor, 'username', None) or getpass.getuser()
-	password = keyring.get_password('YOUGOV.LOCAL', username)
-	if password is None:
-		password = getpass.getpass("Password for {username}>".format(
-			username=username))
-	return Credential(username, password)
-
 class HashableDict(dict):
 	def __hash__(self):
 		return hash(tuple(sorted(self.items())))
@@ -78,13 +69,24 @@ class Velociraptor(object):
 
 	base = _get_base()
 	session = requests.session()
+	username = None
+
+	@classmethod
+	@jaraco.util.functools.once
+	def get_credentials(cls):
+		username = cls.username or getpass.getuser()
+		password = keyring.get_password('YOUGOV.LOCAL', username)
+		if password is None:
+			password = getpass.getpass("Password for {username}>".format(
+				username=username))
+		return Credential(username, password)
 
 	@classmethod
 	def auth(cls):
 		"""
 		Authenticate to Velociraptor and return the home page
 		"""
-		cred = get_credentials()
+		cred = cls.get_credentials()
 		print("Authenticating to {base} as {username}".format(
 			base=cls.base,
 			username=cred.username,
