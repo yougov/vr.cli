@@ -10,9 +10,11 @@ import sys
 import datetime
 import socket
 import os
+import collections
 
 import requests
 import lxml.html
+import jaraco.util.functools
 from jaraco.util import cmdline
 
 try:
@@ -23,14 +25,16 @@ except ImportError:
 		def get_password(*args, **kwargs):
 			return None
 
-def init_credentials():
-	global username, password
+Credential = collections.namedtuple('Credential', 'username password')
 
+@jaraco.util.functools.once
+def get_credentials():
 	username = getpass.getuser()
 	password = keyring.get_password('YOUGOV.LOCAL', username)
 	if password is None:
 		password = getpass.getpass("Password for {username}>".format(
 			username=username))
+	return Credential(username, password)
 
 class HashableDict(dict):
 	def __hash__(self):
@@ -80,11 +84,14 @@ class Velociraptor(object):
 		"""
 		Authenticate to Velociraptor and return the home page
 		"""
-		print("Authenticating to {base}".format(**vars(cls)))
+		cred = get_credentials()
+		print("Authenticating to {base} as {username}".format(
+			base=cls.base,
+			username=cred.username,
+		))
 		resp = cls.session.get(cls.base)
 		if 'baton' in resp.text:
-			resp = cls.session.post(resp.url, data=dict(username=username,
-				password=password))
+			resp = cls.session.post(resp.url, data=cred._asdict())
 		return resp
 
 	@classmethod
@@ -270,7 +277,6 @@ class RebuildAll(cmdline.Command):
 
 
 def handle_command_line():
-	init_credentials()
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--url',
 		help="Velociraptor URL (defaults to https://deploy, resolved)")
