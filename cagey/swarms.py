@@ -219,7 +219,31 @@ class Reswarm(cmdline.Command):
 		[swarm.reswarm(args.tag) for swarm in matched]
 
 
-class RebuildAll(cmdline.Command):
+class Builder(object):
+	@classmethod
+	def build(cls, app, tag):
+		resp = Velociraptor.load('/build/')
+		page = lxml.html.fromstring(resp.text, base_url=resp.url)
+		form = page.forms[0]
+		app_lookup = select_lookup(form.inputs['app_id'])
+		form.fields.update(app_id=app_lookup[app])
+		form.fields.update(tag=tag)
+		return Velociraptor.submit(form)
+
+
+class Build(Builder, cmdline.Command):
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('app')
+		parser.add_argument('tag')
+
+	@classmethod
+	def run(cls, args):
+		Velociraptor.auth()
+		cls.build(args.app, args.tag)
+
+
+class RebuildAll(Builder, cmdline.Command):
 	@classmethod
 	def add_arguments(cls, parser):
 		parser.add_argument('filter', type=SwarmFilter)
@@ -236,7 +260,7 @@ class RebuildAll(cmdline.Command):
 			swarm.load_meta()
 		countdown("Rebuilding in {} sec")
 		for build in cls.unique_builds(swarms):
-			cls.rebuild(**build)
+			cls.build(**build)
 
 		raw_input("Hit enter to continue once builds are done...")
 		for swarm in swarms:
@@ -245,16 +269,6 @@ class RebuildAll(cmdline.Command):
 		print('swarming new releases...')
 		for swarm in swarms:
 			swarm.reswarm()
-
-	@classmethod
-	def rebuild(cls, app, tag):
-		resp = Velociraptor.load('/build/')
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		app_lookup = select_lookup(form.inputs['app_id'])
-		form.fields.update(app_id=app_lookup[app])
-		form.fields.update(tag=tag)
-		return Velociraptor.submit(form)
 
 	@classmethod
 	def unique_builds(cls, swarms):
