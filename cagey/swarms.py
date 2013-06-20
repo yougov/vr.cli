@@ -1,9 +1,7 @@
 from __future__ import print_function
 
-import argparse
 import getpass
 import re
-import pprint
 import urlparse
 import time
 import sys
@@ -15,7 +13,6 @@ import collections
 import requests
 import lxml.html
 import jaraco.util.functools
-from jaraco.util import cmdline
 
 try:
 	import keyring
@@ -48,10 +45,6 @@ class SwarmFilter(unicode):
 				for exclude in self.exclusions)
 			and re.match(self, swarm.name)
 		)
-
-class FilterExcludeAction(argparse.Action):
-	def __call__(self, parser, namespace, values, option_string=None):
-		namespace.filter.exclusions.append(values)
 
 class Velociraptor(object):
 	def _get_base():
@@ -200,110 +193,3 @@ def first_match_lookup(element):
 			reversed(list(element.itertext('option'))),
 			reversed(element.value_options),
 		))
-
-
-class Reswarm(cmdline.Command):
-	@classmethod
-	def add_arguments(cls, parser):
-		parser.add_argument('filter', type=SwarmFilter)
-		parser.add_argument('tag')
-		parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
-
-	@classmethod
-	def run(cls, args):
-		swarms = Swarm.load_all(Velociraptor.auth())
-		matched = list(args.filter.matches(swarms))
-		print("Matched", len(matched), "apps")
-		pprint.pprint(matched)
-		countdown("Reswarming in {} sec")
-		[swarm.reswarm(args.tag) for swarm in matched]
-
-
-class Builder(object):
-	@classmethod
-	def build(cls, app, tag):
-		resp = Velociraptor.load('/build/')
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		app_lookup = select_lookup(form.inputs['app_id'])
-		form.fields.update(app_id=app_lookup[app])
-		form.fields.update(tag=tag)
-		return Velociraptor.submit(form)
-
-
-class Build(Builder, cmdline.Command):
-	@classmethod
-	def add_arguments(cls, parser):
-		parser.add_argument('app')
-		parser.add_argument('tag')
-
-	@classmethod
-	def run(cls, args):
-		Velociraptor.auth()
-		cls.build(args.app, args.tag)
-
-
-class RebuildAll(Builder, cmdline.Command):
-	@classmethod
-	def add_arguments(cls, parser):
-		parser.add_argument('filter', type=SwarmFilter)
-		parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
-
-	@classmethod
-	def run(cls, args):
-		swarms = Swarm.load_all(Velociraptor.auth())
-		swarms = list(args.filter.matches(swarms))
-		print("Matched", len(swarms), "apps")
-		pprint.pprint(swarms)
-		print('loading swarm metadata...')
-		for swarm in swarms:
-			swarm.load_meta()
-		countdown("Rebuilding in {} sec")
-		for build in cls.unique_builds(swarms):
-			cls.build(**build)
-
-		raw_input("Hit enter to continue once builds are done...")
-		for swarm in swarms:
-			cls.release(swarm)
-
-		print('swarming new releases...')
-		for swarm in swarms:
-			swarm.reswarm()
-
-	@classmethod
-	def unique_builds(cls, swarms):
-		items = [
-			HashableDict(swarm.build)
-			for swarm in swarms
-		]
-		return set(items)
-
-	@classmethod
-	def release(cls, swarm):
-		resp = Velociraptor.load('/release/')
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		build_lookup = first_match_lookup(form.inputs['build_id'])
-		recipe_lookup = select_lookup(form.inputs['recipe_id'])
-		build = '-'.join([swarm.app, swarm.tag])
-		form.fields.update(build_id=build_lookup[build])
-		recipe = '-'.join([swarm.app, swarm.recipe])
-		form.fields.update(recipe_id=recipe_lookup[recipe])
-		return Velociraptor.submit(form)
-
-
-def handle_command_line():
-	parser = argparse.ArgumentParser()
-	parser.add_argument('--url',
-		help="Velociraptor URL (defaults to https://deploy, resolved)")
-	parser.add_argument('--username',
-		help="Override the username used for authentication")
-	cmdline.Command.add_subparsers(parser)
-	args = parser.parse_args()
-	if args.url:
-		Velociraptor.base = args.url
-	Velociraptor.username = args.username
-	args.action.run(args)
-
-if __name__ == '__main__':
-	handle_command_line()

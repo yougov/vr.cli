@@ -24,7 +24,7 @@ setup_params = dict(
 	],
 	entry_points=dict(
 		console_scripts=[
-			'cagey = cagey.swarms:handle_command_line',
+			'cagey = cagey.commands:handle_command_line',
 		],
 	),
 	install_requires=[
