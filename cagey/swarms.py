@@ -292,6 +292,22 @@ class ListProcs(cmdline.Command):
 			print (swarmtmpl.format(*ktpl))
 			for proc in procs:
 				print (proctmpl.format(**proc))
+				
+class ListSwarms(cmdline.Command):
+	
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('filter', type=SwarmFilter, nargs='?')
+
+	@classmethod
+	def run(cls, args):
+		all_swarms = Swarm.load_all(Velociraptor.auth())
+		filtered_swarms = all_swarms
+		if args.filter:
+			filtered_swarms = args.filter.matches(all_swarms)
+		swarm_names = [s.name for s in filtered_swarms]
+		[print(name) for name in sorted(swarm_names)]
+
 
 class RebuildAll(Builder, cmdline.Command):
 	@classmethod
