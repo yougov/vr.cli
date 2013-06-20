@@ -22,6 +22,7 @@ try:
 except ImportError:
 	# stub out keyring
 	class keyring:
+		@staticmethod
 		def get_password(*args, **kwargs):
 			return None
 
