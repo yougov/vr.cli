@@ -117,6 +117,21 @@ class Velociraptor(object):
 	@classmethod
 	def submit(cls, form):
 		return lxml.html.submit_form(form, open_http=cls.open_for_lxml)
+		
+	@classmethod
+	def hosts(cls):
+		page = cls.load('/api/hosts/')
+		for hostname in page.json()['hosts']:
+			yield hostname
+			
+	@classmethod
+	def procs(cls):
+		for hostname in cls.hosts():
+			ppage = cls.load('/api/hosts/%s/procs' % hostname)
+			for proc in ppage.json()['procs']:
+				swarmname = '{app}-{recipe}-{proc}'.format(**proc)
+				proc['swarmname'] = swarmname
+				yield proc
 
 class Swarm(object):
 	"""
@@ -248,6 +263,35 @@ class Build(Builder, cmdline.Command):
 		Velociraptor.auth()
 		cls.build(args.app, args.tag)
 
+class ListProcs(cmdline.Command):
+
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('filter', type=SwarmFilter)
+		
+	@classmethod
+	def run(cls, args):
+		swarmtmpl = '{} [{}]'
+		proctmpl  = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
+
+		all_swarms = Swarm.load_all(Velociraptor.auth())
+		swarm_names = [s.name for s in args.filter.matches(all_swarms)]
+		
+		our_procs = [
+			p for p in Velociraptor.procs()
+			if p['swarmname'] in swarm_names
+		]
+
+		import itertools
+		kfunc = lambda proc: (proc['swarmname'], proc['tag'])
+		our_procs = sorted(our_procs, key=kfunc)
+		proc_groups = itertools.groupby(our_procs, key=kfunc)
+		
+		for ktpl, procs in proc_groups:
+			print()
+			print (swarmtmpl.format(*ktpl))
+			for proc in procs:
+				print (proctmpl.format(**proc))
 
 class RebuildAll(Builder, cmdline.Command):
 	@classmethod
