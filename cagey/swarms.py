@@ -67,6 +67,11 @@ class Velociraptor(object):
 			name = 'deploy'
 		fallback = 'https://{name}/'.format(name=name)
 		return os.environ.get('VELOCIRAPTOR_URL', fallback)
+		
+	@classmethod
+	def hostname(cls):
+		import urlparse
+		return urlparse.urlparse(cls.base).hostname
 
 	base = _get_base()
 	session = requests.session()
@@ -78,8 +83,8 @@ class Velociraptor(object):
 		username = cls.username or getpass.getuser()
 		password = keyring.get_password('YOUGOV.LOCAL', username)
 		if password is None:
-			password = getpass.getpass("Password for {username}>".format(
-				username=username))
+			password = getpass.getpass("{username}@{hostname}'s password: ".format(
+				username=username, hostname=cls.hostname()))
 		return Credential(username, password)
 
 	@classmethod
