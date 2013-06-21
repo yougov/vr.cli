@@ -13,18 +13,17 @@ main HTTP-based interface. It parses and submits forms.
 Features
 ========
 
-``cagey`` supports two sub-commands, reswarm and rebuild-all.
+``cagey`` supports several sub-commands, including:
 
-Rebuild All
------------
+ - build
+ - swarm
+ - rebuild-all
 
-This routine will find swarms matching the filter and peform a forced rebuild,
-re-release, and swarm on those swarms such that they are rebuilt whether or
-not Velociraptor believes there's any advantage to rebuilding. This routine
-will become largely obviated if `Velociraptor issue 19
-<https://bitbucket.org/yougov/velociraptor/issue/19>`_ is implemented.
+Build
+-----
 
-    cagey rebuild-all MyApp
+Simply assemble a build of an app at a given tag. This routine is useful to
+prime an build before doing other swarm operations.
 
 Swarm
 -----
@@ -42,3 +41,14 @@ When the command is executed, the routine will first report which swarms will
 be affected and give a 5 second timer in case the matches were not what the
 user intended. If the routine is not cancelled, it will proceed to swarm each
 swarm in turn.
+
+Rebuild All
+-----------
+
+This routine will find swarms matching the filter and peform a forced rebuild,
+re-release, and swarm on those swarms such that they are rebuilt whether or
+not Velociraptor believes there's any advantage to rebuilding. This routine
+will become largely obviated if `Velociraptor issue 19
+<https://bitbucket.org/yougov/velociraptor/issue/19>`_ is implemented.
+
+    cagey rebuild-all MyApp
