@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import getpass
 import re
-import urlparse
 import time
 import sys
 import datetime
@@ -10,9 +9,16 @@ import socket
 import os
 import collections
 
+try:
+	import urllib.parse as urllib_parse
+except ImportError:
+	import urlparse as urllib_parse
+
 import requests
 import lxml.html
 import jaraco.util.functools
+
+from . import six
 
 try:
 	import keyring
@@ -29,7 +35,7 @@ class HashableDict(dict):
 		return hash(tuple(sorted(self.items())))
 
 
-class SwarmFilter(unicode):
+class SwarmFilter(six.text_type):
 	"""
 	A regular expression indicating which swarm names to include.
 	"""
@@ -91,7 +97,7 @@ class Velociraptor(object):
 
 	@classmethod
 	def load(cls, path):
-		url = urlparse.urljoin(cls.base, path)
+		url = urllib_parse.urljoin(cls.base, path)
 		return cls.session.get(url)
 
 	@classmethod

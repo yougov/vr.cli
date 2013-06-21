@@ -28,7 +28,7 @@ setup_params = dict(
 		],
 	),
 	install_requires=[
-		'jaraco.util',
+		'jaraco.util>=8.0.1,<9dev',
 		'requests',
 		'lxml',
 	],
