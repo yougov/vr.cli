@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import pprint
 import argparse
 
@@ -99,6 +101,52 @@ class RebuildAll(Builder, cmdline.Command):
 		recipe = '-'.join([swarm.app, swarm.recipe])
 		form.fields.update(recipe_id=recipe_lookup[recipe])
 		return models.Velociraptor.submit(form)
+
+
+class ListProcs(cmdline.Command):
+
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('filter', type=models.SwarmFilter)
+
+	@classmethod
+	def run(cls, args):
+		swarmtmpl = '{} [{}]'
+		proctmpl  = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
+
+		all_swarms = models.Swarm.load_all(models.Velociraptor.auth())
+		swarm_names = [s.name for s in args.filter.matches(all_swarms)]
+
+		our_procs = [
+			p for p in models.Velociraptor.procs()
+			if p['swarmname'] in swarm_names
+		]
+
+		import itertools
+		kfunc = lambda proc: (proc['swarmname'], proc['tag'])
+		our_procs = sorted(our_procs, key=kfunc)
+		proc_groups = itertools.groupby(our_procs, key=kfunc)
+
+		for ktpl, procs in proc_groups:
+			print()
+			print (swarmtmpl.format(*ktpl))
+			for proc in procs:
+				print (proctmpl.format(**proc))
+
+class ListSwarms(cmdline.Command):
+
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('filter', type=models.SwarmFilter, nargs='?')
+
+	@classmethod
+	def run(cls, args):
+		all_swarms = models.Swarm.load_all(models.Velociraptor.auth())
+		filtered_swarms = all_swarms
+		if args.filter:
+			filtered_swarms = args.filter.matches(all_swarms)
+		swarm_names = [s.name for s in filtered_swarms]
+		[print(name) for name in sorted(swarm_names)]
 
 
 def handle_command_line():

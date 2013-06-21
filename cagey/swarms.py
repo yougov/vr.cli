@@ -25,6 +25,7 @@ try:
 except ImportError:
 	# stub out keyring
 	class keyring:
+		@staticmethod
 		def get_password(*args, **kwargs):
 			return None
 
@@ -65,6 +66,11 @@ class Velociraptor(object):
 			name = 'deploy'
 		fallback = 'https://{name}/'.format(name=name)
 		return os.environ.get('VELOCIRAPTOR_URL', fallback)
+		
+	@classmethod
+	def hostname(cls):
+		import urlparse
+		return urlparse.urlparse(cls.base).hostname
 
 	base = _get_base()
 	session = requests.session()
@@ -76,8 +82,8 @@ class Velociraptor(object):
 		username = cls.username or getpass.getuser()
 		password = keyring.get_password('YOUGOV.LOCAL', username)
 		if password is None:
-			password = getpass.getpass("Password for {username}>".format(
-				username=username))
+			password = getpass.getpass("{username}@{hostname}'s password: ".format(
+				username=username, hostname=cls.hostname()))
 		return Credential(username, password)
 
 	@classmethod
@@ -110,6 +116,21 @@ class Velociraptor(object):
 	@classmethod
 	def submit(cls, form):
 		return lxml.html.submit_form(form, open_http=cls.open_for_lxml)
+		
+	@classmethod
+	def hosts(cls):
+		page = cls.load('/api/hosts/')
+		for hostname in page.json()['hosts']:
+			yield hostname
+			
+	@classmethod
+	def procs(cls):
+		for hostname in cls.hosts():
+			ppage = cls.load('/api/hosts/%s/procs' % hostname)
+			for proc in ppage.json()['procs']:
+				swarmname = '{app}-{recipe}-{proc}'.format(**proc)
+				proc['swarmname'] = swarmname
+				yield proc
 
 class Swarm(object):
 	"""
