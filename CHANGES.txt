@@ -1,0 +1,9 @@
+2.0
+---
+
+Renamed 'reswarm' to 'swarm'.
+
+1.0
+---
+
+Initial release.
