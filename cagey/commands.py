@@ -1,7 +1,10 @@
 from __future__ import print_function
 
+from __future__ import print_function
+
 import pprint
 import argparse
+import itertools
 
 import lxml.html
 from jaraco.util import cmdline
@@ -112,7 +115,7 @@ class ListProcs(cmdline.Command):
 	@classmethod
 	def run(cls, args):
 		swarmtmpl = '{} [{}]'
-		proctmpl  = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
+		proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
 
 		all_swarms = models.Swarm.load_all(models.Velociraptor.auth())
 		swarm_names = [s.name for s in args.filter.matches(all_swarms)]
@@ -122,7 +125,6 @@ class ListProcs(cmdline.Command):
 			if p['swarmname'] in swarm_names
 		]
 
-		import itertools
 		kfunc = lambda proc: (proc['swarmname'], proc['tag'])
 		our_procs = sorted(our_procs, key=kfunc)
 		proc_groups = itertools.groupby(our_procs, key=kfunc)

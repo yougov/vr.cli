@@ -66,11 +66,10 @@ class Velociraptor(object):
 			name = 'deploy'
 		fallback = 'https://{name}/'.format(name=name)
 		return os.environ.get('VELOCIRAPTOR_URL', fallback)
-		
+
 	@classmethod
 	def hostname(cls):
-		import urlparse
-		return urlparse.urlparse(cls.base).hostname
+		return urllib_parse.urlparse(cls.base).hostname
 
 	base = _get_base()
 	session = requests.session()
@@ -116,13 +115,13 @@ class Velociraptor(object):
 	@classmethod
 	def submit(cls, form):
 		return lxml.html.submit_form(form, open_http=cls.open_for_lxml)
-		
+
 	@classmethod
 	def hosts(cls):
 		page = cls.load('/api/hosts/')
 		for hostname in page.json()['hosts']:
 			yield hostname
-			
+
 	@classmethod
 	def procs(cls):
 		for hostname in cls.hosts():
