@@ -31,6 +31,7 @@ setup_params = dict(
 		'jaraco.util>=8.0.1,<9dev',
 		'requests',
 		'lxml',
+		'six',
 	],
 	setup_requires=[
 		'hgtools',

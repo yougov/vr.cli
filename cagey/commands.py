@@ -6,7 +6,7 @@ import pprint
 import argparse
 import itertools
 
-from . import six
+import six
 import lxml.html
 from jaraco.util import cmdline
 

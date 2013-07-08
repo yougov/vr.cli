@@ -14,11 +14,10 @@ try:
 except ImportError:
 	import urlparse as urllib_parse
 
+import six
 import requests
 import lxml.html
 import jaraco.util.functools
-
-from . import six
 
 try:
 	import keyring
