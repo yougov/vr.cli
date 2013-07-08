@@ -6,6 +6,7 @@ import pprint
 import argparse
 import itertools
 
+from . import six
 import lxml.html
 from jaraco.util import cmdline
 
@@ -76,7 +77,7 @@ class RebuildAll(Builder, cmdline.Command):
 		for build in cls.unique_builds(swarms):
 			cls.build(**build)
 
-		raw_input("Hit enter to continue once builds are done...")
+		six.moves.input("Hit enter to continue once builds are done...")
 		for swarm in swarms:
 			cls.release(swarm)
 
