@@ -152,6 +152,20 @@ class ListSwarms(cmdline.Command):
 		[print(name) for name in sorted(swarm_names)]
 
 
+class Uptests(cmdline.Command):
+
+	@classmethod
+	def run(cls, args):
+		models.Velociraptor.auth()
+		resp = models.Velociraptor.load('/api/uptest/latest').json()
+		procs = resp['results']
+		for proc_name in procs:
+			ut_results = procs[proc_name]
+			for result in ut_results:
+				if not result['passed']:
+					print(proc_name, "failed on", result['uptest'])
+
+
 def handle_command_line():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--url',
