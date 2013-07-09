@@ -132,9 +132,9 @@ class ListProcs(cmdline.Command):
 
 		for ktpl, procs in proc_groups:
 			print()
-			print (swarmtmpl.format(*ktpl))
+			print(swarmtmpl.format(*ktpl))
 			for proc in procs:
-				print (proctmpl.format(**proc))
+				print(proctmpl.format(**proc))
 
 class ListSwarms(cmdline.Command):
 
