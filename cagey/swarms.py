@@ -8,6 +8,7 @@ import datetime
 import socket
 import os
 import collections
+import logging
 
 try:
 	import urllib.parse as urllib_parse
@@ -27,6 +28,8 @@ except ImportError:
 		@staticmethod
 		def get_password(*args, **kwargs):
 			return None
+
+log = logging.getLogger(__name__)
 
 Credential = collections.namedtuple('Credential', 'username password')
 
@@ -53,6 +56,24 @@ class SwarmFilter(six.text_type):
 		)
 
 class Velociraptor(object):
+	uptest_url = '/api/uptest/latest'
+
+	def __init__(self, base=None):
+		self.base = base or self._get_base()
+		self.auth()
+
+	@classmethod
+	def viable(cls, base=None):
+		"""
+		Is this class viable for the given base?
+		"""
+		try:
+			cls(base).load(cls.uptest_url)
+			return True
+		except Exception:
+			return False
+
+	@staticmethod
 	def _get_base():
 		"""
 		if 'deploy' resolves in your environment, use the hostname for which
@@ -70,7 +91,7 @@ class Velociraptor(object):
 	def hostname(cls):
 		return urllib_parse.urlparse(cls.base).hostname
 
-	base = _get_base()
+	base = _get_base.__func__()
 	session = requests.session()
 	username = None
 
