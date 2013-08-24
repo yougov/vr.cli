@@ -8,7 +8,7 @@ import six
 import lxml.html
 from jaraco.util import cmdline
 
-from . import swarms as models
+from . import models
 
 
 class FilterExcludeAction(argparse.Action):
