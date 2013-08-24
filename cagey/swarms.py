@@ -10,11 +10,6 @@ import os
 import collections
 import logging
 
-try:
-	import urllib.parse as urllib_parse
-except ImportError:
-	import urlparse as urllib_parse
-
 import six
 import requests
 import lxml.html
@@ -89,7 +84,7 @@ class Velociraptor(object):
 
 	@classmethod
 	def hostname(cls):
-		return urllib_parse.urlparse(cls.base).hostname
+		return six.moves.urllib.parse.urlparse(cls.base).hostname
 
 	base = _get_base.__func__()
 	session = requests.session()
@@ -122,7 +117,7 @@ class Velociraptor(object):
 
 	@classmethod
 	def load(cls, path):
-		url = urllib_parse.urljoin(cls.base, path)
+		url = six.moves.urllib.parse.urljoin(cls.base, path)
 		return cls.session.get(url)
 
 	@classmethod
