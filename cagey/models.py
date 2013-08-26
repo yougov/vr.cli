@@ -53,9 +53,10 @@ class SwarmFilter(six.text_type):
 class Velociraptor(object):
 	uptest_url = '/api/uptest/latest'
 
-	def __init__(self, base=None):
+	def __init__(self, base=None, username=None):
 		self.base = base or self._get_base()
-		self.auth()
+		self.username = username
+		self.home = self.auth()
 
 	@classmethod
 	def viable(cls, base=None):
@@ -90,29 +91,27 @@ class Velociraptor(object):
 	session = requests.session()
 	username = None
 
-	@classmethod
 	@jaraco.util.functools.once
-	def get_credentials(cls):
-		username = cls.username or getpass.getuser()
+	def get_credentials(self):
+		username = self.username or getpass.getuser()
 		password = keyring.get_password('YOUGOV.LOCAL', username)
 		if password is None:
 			password = getpass.getpass("{username}@{hostname}'s password: ".format(
-				username=username, hostname=cls.hostname()))
+				username=username, hostname=self.hostname()))
 		return Credential(username, password)
 
-	@classmethod
-	def auth(cls):
+	def auth(self):
 		"""
 		Authenticate to Velociraptor and return the home page
 		"""
-		cred = cls.get_credentials()
+		cred = self.get_credentials()
 		print("Authenticating to {base} as {username}".format(
-			base=cls.base,
+			base=self.base,
 			username=cred.username,
 		))
-		resp = cls.session.get(cls.base)
+		resp = self.session.get(self.base)
 		if 'baton' in resp.text:
-			resp = cls.session.post(resp.url, data=cred._asdict())
+			resp = self.session.post(resp.url, data=cred._asdict())
 		return resp
 
 	@classmethod
@@ -172,16 +171,16 @@ class Swarm(object):
 			raise SystemExit(1)
 		return swarms
 
-	def reswarm(self, tag=None):
-		resp = Velociraptor.load(self.path)
+	def reswarm(self, vr, tag=None):
+		resp = vr.load(self.path)
 		page = lxml.html.fromstring(resp.text, base_url=resp.url)
 		form = page.forms[0]
 		if tag:
 			form.fields.update(tag=tag)
-		return Velociraptor.submit(form)
+		return vr.submit(form)
 
-	def load_meta(self):
-		resp = Velociraptor.load(self.path)
+	def load_meta(self, vr):
+		resp = vr.load(self.path)
 		page = lxml.html.fromstring(resp.text, base_url=resp.url)
 		form = page.forms[0]
 		app, recipe, proc = self.name.split('-')

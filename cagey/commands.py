@@ -24,24 +24,24 @@ class Swarm(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarms = models.Swarm.load_all(models.Velociraptor.auth())
+		swarms = models.Swarm.load_all(args.vr.home)
 		matched = list(args.filter.matches(swarms))
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
 		models.countdown("Reswarming in {} sec")
-		[swarm.reswarm(args.tag) for swarm in matched]
+		[swarm.reswarm(args.vr, args.tag) for swarm in matched]
 
 
 class Builder(object):
 	@classmethod
-	def build(cls, app, tag):
-		resp = models.Velociraptor.load('/build/')
+	def build(cls, vr, app, tag):
+		resp = vr.load('/build/')
 		page = lxml.html.fromstring(resp.text, base_url=resp.url)
 		form = page.forms[0]
 		app_lookup = models.select_lookup(form.inputs['app_id'])
 		form.fields.update(app_id=app_lookup[app])
 		form.fields.update(tag=tag)
-		return models.Velociraptor.submit(form)
+		return vr.submit(form)
 
 
 class Build(Builder, cmdline.Command):
@@ -52,8 +52,7 @@ class Build(Builder, cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		models.Velociraptor.auth()
-		cls.build(args.app, args.tag)
+		cls.build(args.vr, args.app, args.tag)
 
 
 class RebuildAll(Builder, cmdline.Command):
@@ -64,24 +63,24 @@ class RebuildAll(Builder, cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarms = models.Swarm.load_all(models.Velociraptor.auth())
+		swarms = models.Swarm.load_all(args.vr.home)
 		swarms = list(args.filter.matches(swarms))
 		print("Matched", len(swarms), "apps")
 		pprint.pprint(swarms)
 		print('loading swarm metadata...')
 		for swarm in swarms:
-			swarm.load_meta()
+			swarm.load_meta(args.vr)
 		models.countdown("Rebuilding in {} sec")
 		for build in cls.unique_builds(swarms):
-			cls.build(**build)
+			cls.build(vr=args.vr, **build)
 
 		six.moves.input("Hit enter to continue once builds are done...")
 		for swarm in swarms:
-			cls.release(swarm)
+			cls.release(args.vr, swarm)
 
 		print('swarming new releases...')
 		for swarm in swarms:
-			swarm.reswarm()
+			swarm.reswarm(args.vr)
 
 	@classmethod
 	def unique_builds(cls, swarms):
@@ -92,8 +91,8 @@ class RebuildAll(Builder, cmdline.Command):
 		return set(items)
 
 	@classmethod
-	def release(cls, swarm):
-		resp = models.Velociraptor.load('/release/')
+	def release(cls, vr, swarm):
+		resp = vr.load('/release/')
 		page = lxml.html.fromstring(resp.text, base_url=resp.url)
 		form = page.forms[0]
 		build_lookup = models.first_match_lookup(form.inputs['build_id'])
@@ -102,7 +101,7 @@ class RebuildAll(Builder, cmdline.Command):
 		form.fields.update(build_id=build_lookup[build])
 		recipe = '-'.join([swarm.app, swarm.recipe])
 		form.fields.update(recipe_id=recipe_lookup[recipe])
-		return models.Velociraptor.submit(form)
+		return vr.submit(form)
 
 
 class ListProcs(cmdline.Command):
@@ -116,7 +115,7 @@ class ListProcs(cmdline.Command):
 		swarmtmpl = '{} [{}]'
 		proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
 
-		all_swarms = models.Swarm.load_all(models.Velociraptor.auth())
+		all_swarms = models.Swarm.load_all(args.vr.home)
 		swarm_names = [s.name for s in args.filter.matches(all_swarms)]
 
 		our_procs = [
@@ -142,7 +141,7 @@ class ListSwarms(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		all_swarms = models.Swarm.load_all(models.Velociraptor.auth())
+		all_swarms = models.Swarm.load_all(args.vr.home)
 		filtered_swarms = all_swarms
 		if args.filter:
 			filtered_swarms = args.filter.matches(all_swarms)
@@ -154,8 +153,7 @@ class Uptests(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		models.Velociraptor.auth()
-		resp = models.Velociraptor.load('/api/uptest/latest').json()
+		resp = args.vr.load('/api/uptest/latest').json()
 		procs = resp['results']
 		for proc_name in procs:
 			ut_results = procs[proc_name]
@@ -172,7 +170,6 @@ def handle_command_line():
 		help="Override the username used for authentication")
 	cmdline.Command.add_subparsers(parser)
 	args = parser.parse_args()
-	if args.url:
-		models.Velociraptor.base = args.url
 	models.Velociraptor.username = args.username
+	args.vr = models.Velociraptor(args.url, args.username)
 	args.action.run(args)
