@@ -56,7 +56,7 @@ class Velociraptor(object):
 	def __init__(self, base=None, username=None):
 		self.base = base or self._get_base()
 		self.username = username
-		self.home = self.auth()
+		self.auth()
 
 	@classmethod
 	def viable(cls, base=None):
@@ -114,61 +114,33 @@ class Velociraptor(object):
 			resp = self.session.post(resp.url, data=cred._asdict())
 		return resp
 
-	@classmethod
-	def load(cls, path):
-		url = six.moves.urllib.parse.urljoin(cls.base, path)
-		return cls.session.get(url)
+	def load(self, path):
+		url = six.moves.urllib.parse.urljoin(self.base, path)
+		url += '?format=json&limit=9999'
+		return self.session.get(url).json()
 
-	@classmethod
-	def open_for_lxml(cls, method, url, values):
-		"""
-		Open a request for lxml using the class' session
-		"""
-		return cls.session.request(url=url, method=method, data=dict(values))
-
-	@classmethod
-	def submit(cls, form):
-		return lxml.html.submit_form(form, open_http=cls.open_for_lxml)
-
-	@classmethod
-	def hosts(cls):
-		page = cls.load('/api/hosts/')
-		for hostname in page.json()['hosts']:
-			yield hostname
-
-	@classmethod
-	def procs(cls):
-		for hostname in cls.hosts():
-			ppage = cls.load('/api/hosts/%s/procs' % hostname)
-			for proc in ppage.json()['procs']:
-				swarmname = '{app}-{recipe}-{proc}'.format(**proc)
-				proc['swarmname'] = swarmname
-				yield proc
 
 class Swarm(object):
 	"""
 	A VR Swarm
 	"""
-	def __init__(self, name, path, **kwargs):
-		self.name = name
-		self.path = path
-		self.__dict__.update(kwargs)
+	def __init__(self, vr, obj):
+		self.vr = vr
+		self.__dict__.update(obj)
+
+	def __lt__(self, other):
+		return self.shortname < other.shortname
 
 	def __repr__(self):
-		return self.name
+		return self.shortname
 
 	@classmethod
-	def load_all(cls, home):
+	def load_all(cls, vr):
 		"""
-		Load all swarms as found on the VR homepage
+		Load all swarms
 		"""
-		swarm_pat = re.compile('<option value="(?P<path>/swarm/\d+/)">(?P<name>.*?)</option>')
-		matches = swarm_pat.finditer(home.text)
-		swarms = [Swarm(**match.groupdict()) for match in matches]
-		if not swarms:
-			print("No swarms found at", home.url, file=sys.stderr)
-			print("Response was", home.text, file=sys.stderr)
-			raise SystemExit(1)
+		swarm_obs = vr.load('/api/v1/swarms/')['objects']
+		swarms = [cls(vr, ob) for ob in swarm_obs]
 		return swarms
 
 	def reswarm(self, vr, tag=None):

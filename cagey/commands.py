@@ -141,12 +141,11 @@ class ListSwarms(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		all_swarms = models.Swarm.load_all(args.vr.home)
+		all_swarms = models.Swarm.load_all(args.vr)
 		filtered_swarms = all_swarms
 		if args.filter:
 			filtered_swarms = args.filter.matches(all_swarms)
-		swarm_names = [s.name for s in filtered_swarms]
-		[print(name) for name in sorted(swarm_names)]
+		[print(swarm) for swarm in sorted(filtered_swarms)]
 
 
 class Uptests(cmdline.Command):
