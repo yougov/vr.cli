@@ -57,7 +57,7 @@ class Velociraptor(object):
 	def __init__(self, base=None, username=None):
 		self.base = base or self._get_base()
 		self.username = username
-		self.auth()
+		self.session.auth = self.get_credentials()
 
 	@classmethod
 	def viable(cls, base=None):
@@ -100,20 +100,6 @@ class Velociraptor(object):
 			password = getpass.getpass("{username}@{hostname}'s password: ".format(
 				username=username, hostname=self.hostname()))
 		return Credential(username, password)
-
-	def auth(self):
-		"""
-		Authenticate to Velociraptor and return the home page
-		"""
-		cred = self.get_credentials()
-		print("Authenticating to {base} as {username}".format(
-			base=self.base,
-			username=cred.username,
-		))
-		resp = self.session.get(self.base)
-		if 'baton' in resp.text:
-			resp = self.session.post(resp.url, data=cred._asdict())
-		return resp
 
 	def load(self, path):
 		url = six.moves.urllib.parse.urljoin(self.base, path)
