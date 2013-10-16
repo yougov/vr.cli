@@ -109,6 +109,12 @@ class Velociraptor(object):
 		url += '?format=json&limit=9999'
 		return self.session.get(url).json()
 
+	def build(self, app, tag):
+		"""
+		first post to /api/v1/builds/ with {'app', 'tag'}
+		then post to /api/v1/builds/id/build/
+		"""
+
 
 class Swarm(object):
 	"""

@@ -34,13 +34,7 @@ class Swarm(cmdline.Command):
 class Builder(object):
 	@classmethod
 	def build(cls, vr, app, tag):
-		resp = vr.load('/build/')
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		app_lookup = models.select_lookup(form.inputs['app_id'])
-		form.fields.update(app_id=app_lookup[app])
-		form.fields.update(tag=tag)
-		return vr.submit(form)
+		vr.build(app, tag)
 
 
 class Build(Builder, cmdline.Command):
