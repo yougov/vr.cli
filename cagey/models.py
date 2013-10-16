@@ -129,10 +129,14 @@ class Swarm(object):
 		self.__dict__.update(obj)
 
 	def __lt__(self, other):
-		return self.shortname < other.shortname
+		return self.name < other.name
+
+	@property
+	def name(self):
+		return '-'.join([self.app_name, self.config_name, self.proc_name])
 
 	def __repr__(self):
-		return self.shortname
+		return self.name
 
 	@classmethod
 	def load_all(cls, vr):
@@ -148,7 +152,10 @@ class Swarm(object):
 		Cause the new swarm to be dispatched (a.k.a. swarmed)
 		"""
 		url = six.moves.urllib.parse.urljoin(vr.base, self.resource_uri)
-		vr.session.patch(url, dict(version=tag or self.version))
+		resp = vr.session.patch(url, dict(version=tag or self.version))
+		resp.raise_for_status()
+		trigger_url = six.moves.urllib.parse.urljoin(url, 'swarm/')
+		vr.session.post(trigger_url)
 
 	def load_meta(self, vr):
 		resp = vr.load(self.path)
