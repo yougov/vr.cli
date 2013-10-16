@@ -5,7 +5,6 @@ import argparse
 import itertools
 
 import six
-import lxml.html
 from jaraco.util import cmdline
 
 from . import models
