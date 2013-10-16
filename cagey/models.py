@@ -14,7 +14,6 @@ import json
 
 import six
 import requests
-import lxml.html
 import jaraco.util.functools
 
 try:
