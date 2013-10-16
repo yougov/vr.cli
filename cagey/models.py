@@ -159,26 +159,17 @@ class Swarm(object):
 		resp = self._vr.session.put(url, json.dumps(content))
 		resp.raise_for_status()
 
-	def load_meta(self, vr):
-		resp = vr.load(self.path)
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		app, recipe, proc = self.name.split('-')
-		self.__dict__.update(form.fields)
-
 	@property
 	def app(self):
-		app, recipe, proc = self.name.split('-')
-		return app
+		return self.app_name
 
 	@property
 	def recipe(self):
-		app, recipe, proc = self.name.split('-')
-		return recipe
+		return self.config_name
 
 	@property
 	def build(self):
-		return {'app': self.app, 'tag': self.tag}
+		return {'app': self.app, 'tag': self.version}
 
 def countdown(template):
 	now = datetime.datetime.now()
