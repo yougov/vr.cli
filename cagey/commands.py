@@ -29,7 +29,7 @@ class Swarm(cmdline.Command):
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
 		models.countdown("Reswarming in {} sec")
-		[swarm.dispatch(args.vr, args.tag) for swarm in matched]
+		[swarm.dispatch(args.tag) for swarm in matched]
 
 
 class Builder(object):

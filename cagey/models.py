@@ -9,6 +9,7 @@ import socket
 import os
 import collections
 import logging
+import copy
 
 import six
 import requests
@@ -125,7 +126,7 @@ class Swarm(object):
 	A VR Swarm
 	"""
 	def __init__(self, vr, obj):
-		self.vr = vr
+		self._vr = vr
 		self.__dict__.update(obj)
 
 	def __lt__(self, other):
@@ -147,15 +148,25 @@ class Swarm(object):
 		swarms = [cls(vr, ob) for ob in swarm_obs]
 		return swarms
 
-	def dispatch(self, vr, tag=None):
+	def dispatch(self, tag=None):
 		"""
 		Cause the new swarm to be dispatched (a.k.a. swarmed)
 		"""
-		url = six.moves.urllib.parse.urljoin(vr.base, self.resource_uri)
-		resp = vr.session.patch(url, dict(version=tag or self.version))
+		# clear the release to cause a new one to be built
+		del self.release
+		if tag is not None:
+			self.tag = tag
+		self.save()
+		trigger_url = six.moves.urllib.parse.urljoin(
+			self._vr.base, self.resource_uri, 'swarm/')
+		self._vr.session.post(trigger_url)
+
+	def save(self):
+		url = six.moves.urllib.parse.urljoin(self._vr.base, self.resource_uri)
+		content = copy.deepcopy(self.__dict__)
+		content.pop('_vr')
+		resp = self._vr.session.put(url, content)
 		resp.raise_for_status()
-		trigger_url = six.moves.urllib.parse.urljoin(url, 'swarm/')
-		vr.session.post(trigger_url)
 
 	def load_meta(self, vr):
 		resp = vr.load(self.path)
