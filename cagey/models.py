@@ -147,7 +147,8 @@ class Swarm(object):
 			self.version = tag
 		self.save()
 		trigger_url = six.moves.urllib.parse.urljoin(
-			self._vr.base, self.resource_uri, 'swarm/')
+			self._vr.base, self.resource_uri)
+		trigger_url = six.moves.urllib.parse.urljoin(trigger_url, 'swarm/')
 		resp = self._vr.session.post(trigger_url)
 		resp.raise_for_status()
 
