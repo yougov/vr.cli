@@ -143,13 +143,12 @@ class Swarm(object):
 		swarms = [cls(vr, ob) for ob in swarm_obs]
 		return swarms
 
-	def reswarm(self, vr, tag=None):
-		resp = vr.load(self.path)
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		if tag:
-			form.fields.update(tag=tag)
-		return vr.submit(form)
+	def dispatch(self, vr, tag=None):
+		"""
+		Cause the new swarm to be dispatched (a.k.a. swarmed)
+		"""
+		url = six.moves.urllib.parse.urljoin(vr.base, self.resource_uri)
+		vr.session.patch(url, dict(version=tag or self.version))
 
 	def load_meta(self, vr):
 		resp = vr.load(self.path)

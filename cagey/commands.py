@@ -24,12 +24,12 @@ class Swarm(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarms = models.Swarm.load_all(args.vr.home)
+		swarms = models.Swarm.load_all(args.vr)
 		matched = list(args.filter.matches(swarms))
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
 		models.countdown("Reswarming in {} sec")
-		[swarm.reswarm(args.vr, args.tag) for swarm in matched]
+		[swarm.dispatch(args.vr, args.tag) for swarm in matched]
 
 
 class Builder(object):
