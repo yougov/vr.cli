@@ -10,6 +10,7 @@ import os
 import collections
 import logging
 import copy
+import json
 
 import six
 import requests
@@ -90,6 +91,9 @@ class Velociraptor(object):
 
 	base = _get_base.__func__()
 	session = requests.session()
+	session.headers = {
+		'Content-Type': 'application/json',
+	}
 	username = None
 
 	@jaraco.util.functools.once
@@ -141,17 +145,18 @@ class Swarm(object):
 		# clear the release to cause a new one to be built
 		del self.release
 		if tag is not None:
-			self.tag = tag
+			self.version = tag
 		self.save()
 		trigger_url = six.moves.urllib.parse.urljoin(
 			self._vr.base, self.resource_uri, 'swarm/')
-		self._vr.session.post(trigger_url)
+		resp = self._vr.session.post(trigger_url)
+		resp.raise_for_status()
 
 	def save(self):
 		url = six.moves.urllib.parse.urljoin(self._vr.base, self.resource_uri)
 		content = copy.deepcopy(self.__dict__)
 		content.pop('_vr')
-		resp = self._vr.session.put(url, content)
+		resp = self._vr.session.put(url, json.dumps(content))
 		resp.raise_for_status()
 
 	def load_meta(self, vr):
