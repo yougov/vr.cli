@@ -89,25 +89,16 @@ class ListProcs(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarmtmpl = '{} [{}]'
+		swarmtmpl = '{swarm.name} [{swarm.version}]'
 		proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
 
-		all_swarms = models.Swarm.load_all(args.vr.home)
-		swarm_names = [s.name for s in args.filter.matches(all_swarms)]
+		all_swarms = models.Swarm.load_all(args.vr)
+		swarms = args.filter.matches(all_swarms)
 
-		our_procs = [
-			p for p in models.Velociraptor.procs()
-			if p['swarmname'] in swarm_names
-		]
-
-		kfunc = lambda proc: (proc['swarmname'], proc['tag'])
-		our_procs = sorted(our_procs, key=kfunc)
-		proc_groups = itertools.groupby(our_procs, key=kfunc)
-
-		for ktpl, procs in proc_groups:
+		for swarm in swarms:
 			print()
-			print(swarmtmpl.format(*ktpl))
-			for proc in procs:
+			print(swarmtmpl.format(**vars()))
+			for proc in swarm.procs:
 				print(proctmpl.format(**proc))
 
 class ListSwarms(cmdline.Command):
