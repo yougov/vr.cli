@@ -166,13 +166,20 @@ class Swarm(object):
 		Cause the new swarm to be dispatched (a.k.a. swarmed)
 		"""
 		if tag is not None:
-			self.version = tag
-		self.save()
+			self.patch(version=tag)
 		trigger_url = six.moves.urllib.parse.urljoin(
 			self._vr.base, self.resource_uri)
 		trigger_url = six.moves.urllib.parse.urljoin(trigger_url, 'swarm/')
 		resp = self._vr.session.post(trigger_url)
 		resp.raise_for_status()
+
+	def patch(self, **changes):
+		if not changes:
+			return
+		url = six.moves.urllib.parse.urljoin(self._vr.base, self.resource_uri)
+		resp = self._vr.session.patch(url, json.dumps(changes))
+		resp.raise_for_status()
+		self.__dict__.update(changes)
 
 	def save(self):
 		url = six.moves.urllib.parse.urljoin(self._vr.base, self.resource_uri)
