@@ -19,6 +19,11 @@ class Swarm(cmdline.Command):
 		parser.add_argument('filter', type=models.SwarmFilter)
 		parser.add_argument('tag')
 		parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
+		parser.add_argument(
+			'--countdown', action="store_true",
+			default=False,
+			help="Give a 5 second countdown before dispatching swarms.",
+		)
 
 	@classmethod
 	def run(cls, args):
@@ -26,7 +31,8 @@ class Swarm(cmdline.Command):
 		matched = list(args.filter.matches(swarms))
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
-		models.countdown("Reswarming in {} sec")
+		if args.countdown:
+			models.countdown("Reswarming in {} sec")
 		[swarm.dispatch(version=args.tag) for swarm in matched]
 
 
@@ -46,6 +52,11 @@ class RebuildAll(cmdline.Command):
 	def add_arguments(cls, parser):
 		parser.add_argument('filter', type=models.SwarmFilter)
 		parser.add_argument('-x', '--exclude', action=FilterExcludeAction)
+		parser.add_argument(
+			'--countdown', action="store_true",
+			default=False,
+			help="Give a 5 second countdown before dispatching swarms.",
+		)
 
 	@classmethod
 	def run(cls, args):
@@ -53,7 +64,8 @@ class RebuildAll(cmdline.Command):
 		swarms = list(args.filter.matches(swarms))
 		print("Matched", len(swarms), "apps")
 		pprint.pprint(swarms)
-		models.countdown("Rebuilding in {} sec")
+		if args.countdown:
+			models.countdown("Rebuilding in {} sec")
 		for build in cls.unique_builds(swarms):
 			args.vr.assemble(**build)
 
