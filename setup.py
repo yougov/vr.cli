@@ -7,7 +7,7 @@ with open('README') as stream:
 
 setup_params = dict(
 	name='cagey',
-	use_hg_version=dict(increment='1.0'),
+	use_hg_version=dict(increment='0.1'),
 	description="Command-line client for working with Velociraptor",
 	long_description=long_description,
 	author="Jason R. Coombs",
