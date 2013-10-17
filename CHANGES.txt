@@ -1,6 +1,11 @@
 3.0
 ---
 
+Support Velociraptor 2. Drop support for Velociraptor 1.
+
+2.3
+---
+
 Renamed ``cagey.swarms`` to ``cagey.models``.
 
 2.0
