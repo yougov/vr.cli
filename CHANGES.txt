@@ -6,6 +6,8 @@ Use PATCH method when dispatching swarms.
 Countdown on 'swarm' and 'rebuild-all' is now disabled by default. Pass
 '--countdown' to enable it.
 
+Improved support for 'rebuild-all'.
+
 3.0
 ---
 
