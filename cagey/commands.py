@@ -31,13 +31,7 @@ class Swarm(cmdline.Command):
 		[swarm.dispatch(args.tag) for swarm in matched]
 
 
-class Builder(object):
-	@classmethod
-	def build(cls, vr, app, tag):
-		vr.assemble(app, tag)
-
-
-class Build(Builder, cmdline.Command):
+class Build(cmdline.Command):
 	@classmethod
 	def add_arguments(cls, parser):
 		parser.add_argument('app')
@@ -45,10 +39,10 @@ class Build(Builder, cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		cls.build(args.vr, args.app, args.tag)
+		args.vr.assemble(args.app, args.tag)
 
 
-class RebuildAll(Builder, cmdline.Command):
+class RebuildAll(cmdline.Command):
 	@classmethod
 	def add_arguments(cls, parser):
 		parser.add_argument('filter', type=models.SwarmFilter)
@@ -62,7 +56,7 @@ class RebuildAll(Builder, cmdline.Command):
 		pprint.pprint(swarms)
 		models.countdown("Rebuilding in {} sec")
 		for build in cls.unique_builds(swarms):
-			cls.build(vr=args.vr, **build)
+			args.vr.assemble(**build)
 
 		six.moves.input("Hit enter to continue once builds are done...")
 		for swarm in swarms:
