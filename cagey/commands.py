@@ -120,13 +120,12 @@ class Uptests(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		resp = args.vr.load('/api/uptest/latest').json()
-		procs = resp['results']
-		for proc_name in procs:
-			ut_results = procs[proc_name]
-			for result in ut_results:
-				if not result['passed']:
-					print(proc_name, "failed on", result['uptest'])
+		resp = args.vr.load('/api/v1/testruns/latest/')
+		results = resp['testresults']
+		for result in results:
+			if not result['passed']:
+				print("{procname} failed:".format(**result))
+				print(result['results'])
 
 
 def handle_command_line():
