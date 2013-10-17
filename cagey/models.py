@@ -211,21 +211,3 @@ def countdown(template):
 		print('\b'*80, end='')
 		sys.stdout.flush()
 	print()
-
-
-def select_lookup(element):
-	"""
-	Given an LXML 'select' element, return a dict of Option text -> value
-	"""
-	return dict(zip(element.itertext('option'), element.value_options))
-
-def first_match_lookup(element):
-	"""
-	Like select_lookup except if there are multiple options with the same
-	string, prefer the first.
-	"""
-	return dict(
-		zip(
-			reversed(list(element.itertext('option'))),
-			reversed(element.value_options),
-		))

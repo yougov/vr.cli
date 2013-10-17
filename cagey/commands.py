@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import pprint
 import argparse
-import itertools
 
 import six
 from jaraco.util import cmdline
