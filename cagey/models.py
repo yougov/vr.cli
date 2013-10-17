@@ -153,7 +153,7 @@ class Swarm(object):
 		Patch the swarm with changes and then trigger the swarm.
 		"""
 		self.patch(**changes)
-		trigger_url = self._vr._build_url(self.resource_url, 'swarm/')
+		trigger_url = self._vr._build_url(self.resource_uri, 'swarm/')
 		resp = self._vr.session.post(trigger_url)
 		resp.raise_for_status()
 
