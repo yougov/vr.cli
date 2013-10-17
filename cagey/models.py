@@ -11,6 +11,7 @@ import collections
 import logging
 import copy
 import json
+import functools
 
 import six
 import requests
@@ -105,7 +106,7 @@ class Velociraptor(object):
 		return Credential(username, password)
 
 	def load(self, path):
-		url = six.moves.urllib.parse.urljoin(self.base, path)
+		url = self._build_url(path)
 		url += '?format=json&limit=9999'
 		return self.session.get(url).json()
 
@@ -118,8 +119,7 @@ class Velociraptor(object):
 			app=app_id,
 			tag=tag,
 		)
-		path = '/api/v1/builds/'
-		url = six.moves.urllib.parse.urljoin(self.base, path)
+		url = self._build_url('/api/v1/builds')
 		resp = self.session.post(url, json.dumps(doc))
 		resp.raise_for_status()
 
@@ -132,6 +132,10 @@ class Velociraptor(object):
 		Cut a release
 		"""
 		raise NotImplementedError("Can't cut releases (config?)")
+
+	def _build_url(self, *parts):
+		joiner = six.moves.urllib.parse.urljoin
+		return functools.reduce(joiner, parts, self.base)
 
 
 class Swarm(object):
@@ -166,22 +170,20 @@ class Swarm(object):
 		Patch the swarm with changes and then trigger the swarm.
 		"""
 		self.patch(**changes)
-		trigger_url = six.moves.urllib.parse.urljoin(
-			self._vr.base, self.resource_uri)
-		trigger_url = six.moves.urllib.parse.urljoin(trigger_url, 'swarm/')
+		trigger_url = self._vr._build_url(self.resource_url, 'swarm/')
 		resp = self._vr.session.post(trigger_url)
 		resp.raise_for_status()
 
 	def patch(self, **changes):
 		if not changes:
 			return
-		url = six.moves.urllib.parse.urljoin(self._vr.base, self.resource_uri)
+		url = self._vr._build_url(self.resource_uri)
 		resp = self._vr.session.patch(url, json.dumps(changes))
 		resp.raise_for_status()
 		self.__dict__.update(changes)
 
 	def save(self):
-		url = six.moves.urllib.parse.urljoin(self._vr.base, self.resource_uri)
+		url = self._vr._build_url(self.resource_uri)
 		content = copy.deepcopy(self.__dict__)
 		content.pop('_vr')
 		resp = self._vr.session.put(url, json.dumps(content))
