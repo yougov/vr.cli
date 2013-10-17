@@ -110,23 +110,6 @@ class Velociraptor(object):
 		url += '?format=json&limit=9999'
 		return self.session.get(url).json()
 
-	def assemble(self, app_name, tag):
-		"""
-		Assemble a build
-		"""
-		app_id = '/api/v1/apps/{app_name}/'.format(**vars())
-		doc = dict(
-			app=app_id,
-			tag=tag,
-		)
-		url = self._build_url('/api/v1/builds')
-		resp = self.session.post(url, json.dumps(doc))
-		resp.raise_for_status()
-
-		# trigger the build
-		resp = self.session.post(resp.headers['location'] + 'build/')
-		resp.raise_for_status()
-
 	def cut(self, build, **kwargs):
 		"""
 		Cut a release
@@ -197,10 +180,63 @@ class Swarm(object):
 	def recipe(self):
 		return self.config_name
 
-	@property
-	def build(self):
-		return {'app': self.app, 'tag': self.version}
+	def new_build(self):
+		return Build._for_app_and_tag(
+			self._vr,
+			self.app,
+			self.version,
+		)
 
+
+class Build(object):
+	base = '/api/v1/builds/'
+
+	def __init__(self, vr, obj):
+		self._vr = vr
+		self.__dict__.update(obj)
+
+	@property
+	def created(self):
+		return 'id' in vars(self)
+
+	def create(self):
+		if self.created:
+			raise ValueError("Build already created")
+		doc = copy.deepcopy(self.__dict__)
+		doc.pop('_vr')
+		url = self._vr._build_url(self.base)
+		resp = self._vr.session.post(url, json.dumps(doc))
+		resp.raise_for_status()
+		self.load(resp.headers['location'])
+
+	def load(self, url):
+		resp = self._vr.session.get(url)
+		resp.raise_for_status()
+		self.__dict__.update(resp.json())
+
+	def assemble(self):
+		"""
+		Assemble a build
+		"""
+		if not self.created:
+			self.create()
+		# trigger the build
+		url = self._vr._build_url(self.resource_uri, 'build/')
+		resp = self._vr.session.post(url)
+		resp.raise_for_status()
+
+	@classmethod
+	def _for_app_and_tag(cls, vr, app, tag):
+		obj = dict(app='/api/v1/apps/' + app + '/', tag=tag)
+		return cls(vr, obj)
+
+	def __hash__(self):
+		hd = HashableDict(self.__dict__)
+		hd.pop('_vr')
+		return hash(hd)
+
+	def __eq__(self, other):
+		return vars(self) == vars(other)
 
 def countdown(template):
 	now = datetime.datetime.now()

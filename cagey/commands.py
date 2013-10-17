@@ -3,7 +3,6 @@ from __future__ import print_function
 import pprint
 import argparse
 
-import six
 from jaraco.util import cmdline
 
 from . import models
@@ -44,7 +43,8 @@ class Build(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		args.vr.assemble(args.app, args.tag)
+		build = models.Build._for_app_and_tag(args.vr, args.app, args.tag)
+		build.assemble()
 
 
 class RebuildAll(cmdline.Command):
@@ -66,24 +66,11 @@ class RebuildAll(cmdline.Command):
 		pprint.pprint(swarms)
 		if args.countdown:
 			models.countdown("Rebuilding in {} sec")
-		for build in cls.unique_builds(swarms):
-			args.vr.assemble(**build)
-
-		six.moves.input("Hit enter to continue once builds are done...")
-		for swarm in swarms:
-			args.vr.cut()
-
-		print('swarming new releases...')
+		builds = [swarm.new_build() for swarm in swarms]
+		for build in set(builds):
+			build.assemble()
 		for swarm in swarms:
 			swarm.dispatch()
-
-	@classmethod
-	def unique_builds(cls, swarms):
-		items = [
-			models.HashableDict(swarm.build)
-			for swarm in swarms
-		]
-		return set(items)
 
 
 class ListProcs(cmdline.Command):
