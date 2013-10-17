@@ -109,11 +109,29 @@ class Velociraptor(object):
 		url += '?format=json&limit=9999'
 		return self.session.get(url).json()
 
-	def build(self, app, tag):
+	def assemble(self, app_name, tag):
 		"""
-		first post to /api/v1/builds/ with {'app', 'tag'}
-		then post to /api/v1/builds/id/build/
+		Assemble a build
 		"""
+		app_id = '/api/v1/apps/{app_name}/'.format(**vars())
+		doc = dict(
+			app=app_id,
+			tag=tag,
+		)
+		path = '/api/v1/builds/'
+		url = six.moves.urllib.parse.urljoin(self.base, path)
+		resp = self.session.post(url, json.dumps(doc))
+		resp.raise_for_status()
+
+		# trigger the build
+		resp = self.session.post(resp.headers['location'] + 'build/')
+		resp.raise_for_status()
+
+	def cut(self, build, **kwargs):
+		"""
+		Cut a release
+		"""
+		raise NotImplementedError("Can't cut releases (config?)")
 
 
 class Swarm(object):
@@ -176,6 +194,7 @@ class Swarm(object):
 	@property
 	def build(self):
 		return {'app': self.app, 'tag': self.version}
+
 
 def countdown(template):
 	now = datetime.datetime.now()

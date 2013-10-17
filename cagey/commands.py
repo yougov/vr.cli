@@ -34,7 +34,7 @@ class Swarm(cmdline.Command):
 class Builder(object):
 	@classmethod
 	def build(cls, vr, app, tag):
-		vr.build(app, tag)
+		vr.assemble(app, tag)
 
 
 class Build(Builder, cmdline.Command):
@@ -56,24 +56,21 @@ class RebuildAll(Builder, cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		swarms = models.Swarm.load_all(args.vr.home)
+		swarms = models.Swarm.load_all(args.vr)
 		swarms = list(args.filter.matches(swarms))
 		print("Matched", len(swarms), "apps")
 		pprint.pprint(swarms)
-		print('loading swarm metadata...')
-		for swarm in swarms:
-			swarm.load_meta(args.vr)
 		models.countdown("Rebuilding in {} sec")
 		for build in cls.unique_builds(swarms):
 			cls.build(vr=args.vr, **build)
 
 		six.moves.input("Hit enter to continue once builds are done...")
 		for swarm in swarms:
-			cls.release(args.vr, swarm)
+			args.vr.cut()
 
 		print('swarming new releases...')
 		for swarm in swarms:
-			swarm.reswarm(args.vr)
+			swarm.dispatch(args.vr)
 
 	@classmethod
 	def unique_builds(cls, swarms):
@@ -82,19 +79,6 @@ class RebuildAll(Builder, cmdline.Command):
 			for swarm in swarms
 		]
 		return set(items)
-
-	@classmethod
-	def release(cls, vr, swarm):
-		resp = vr.load('/release/')
-		page = lxml.html.fromstring(resp.text, base_url=resp.url)
-		form = page.forms[0]
-		build_lookup = models.first_match_lookup(form.inputs['build_id'])
-		recipe_lookup = models.select_lookup(form.inputs['recipe_id'])
-		build = '-'.join([swarm.app, swarm.tag])
-		form.fields.update(build_id=build_lookup[build])
-		recipe = '-'.join([swarm.app, swarm.recipe])
-		form.fields.update(recipe_id=recipe_lookup[recipe])
-		return vr.submit(form)
 
 
 class ListProcs(cmdline.Command):
