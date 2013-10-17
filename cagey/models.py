@@ -165,8 +165,6 @@ class Swarm(object):
 		"""
 		Cause the new swarm to be dispatched (a.k.a. swarmed)
 		"""
-		# clear the release to cause a new one to be built
-		del self.release
 		if tag is not None:
 			self.version = tag
 		self.save()
