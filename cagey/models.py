@@ -161,12 +161,11 @@ class Swarm(object):
 		swarms = [cls(vr, ob) for ob in swarm_obs]
 		return swarms
 
-	def dispatch(self, tag=None):
+	def dispatch(self, **changes):
 		"""
-		Cause the new swarm to be dispatched (a.k.a. swarmed)
+		Patch the swarm with changes and then trigger the swarm.
 		"""
-		if tag is not None:
-			self.patch(version=tag)
+		self.patch(**changes)
 		trigger_url = six.moves.urllib.parse.urljoin(
 			self._vr.base, self.resource_uri)
 		trigger_url = six.moves.urllib.parse.urljoin(trigger_url, 'swarm/')

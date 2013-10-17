@@ -27,7 +27,7 @@ class Swarm(cmdline.Command):
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
 		models.countdown("Reswarming in {} sec")
-		[swarm.dispatch(args.tag) for swarm in matched]
+		[swarm.dispatch(version=args.tag) for swarm in matched]
 
 
 class Build(cmdline.Command):
@@ -63,7 +63,7 @@ class RebuildAll(cmdline.Command):
 
 		print('swarming new releases...')
 		for swarm in swarms:
-			swarm.dispatch(args.vr)
+			swarm.dispatch()
 
 	@classmethod
 	def unique_builds(cls, swarms):
