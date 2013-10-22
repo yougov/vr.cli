@@ -85,10 +85,14 @@ class Velociraptor(object):
 	@jaraco.util.functools.once
 	def get_credentials(self):
 		username = self.username or getpass.getuser()
-		password = keyring.get_password('YOUGOV.LOCAL', username)
+		hostname = self.hostname()
+		_, _, default_domain = hostname.partition('.')
+		auth_domain = os.environ.get('VELOCIRAPTOR_AUTH_DOMAIN',
+			default_domain)
+		password = keyring.get_password(auth_domain, username)
 		if password is None:
 			prompt_tmpl = "{username}@{hostname}'s password: "
-			prompt = prompt_tmpl.format(hostname=self.hostname(), **vars())
+			prompt = prompt_tmpl.format(**vars())
 			password = getpass.getpass(prompt)
 		return Credential(username, password)
 
