@@ -53,6 +53,9 @@ class SwarmFilter(six.text_type):
 		)
 
 class Velociraptor(object):
+	"""
+	A Velociraptor 2 HTTP API service
+	"""
 	uptest_url = '/api/uptest/latest'
 
 	def __init__(self, base=None, username=None):
