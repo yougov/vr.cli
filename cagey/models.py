@@ -226,19 +226,3 @@ class Build(object):
 
 	def __eq__(self, other):
 		return vars(self) == vars(other)
-
-def countdown(template):
-	now = datetime.datetime.now()
-	delay = datetime.timedelta(seconds=5)
-	deadline = now + delay
-	remaining = deadline - datetime.datetime.now()
-	while remaining:
-		remaining = deadline - datetime.datetime.now()
-		remaining = max(datetime.timedelta(), remaining)
-		msg = template.format(remaining.total_seconds())
-		print(msg, end=' '*10)
-		sys.stdout.flush()
-		time.sleep(.1)
-		print('\b'*80, end='')
-		sys.stdout.flush()
-	print()

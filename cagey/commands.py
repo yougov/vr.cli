@@ -4,6 +4,7 @@ import pprint
 import argparse
 
 from jaraco.util import cmdline
+from jaraco.util import ui
 
 from . import models
 
@@ -31,7 +32,7 @@ class Swarm(cmdline.Command):
 		print("Matched", len(matched), "apps")
 		pprint.pprint(matched)
 		if args.countdown:
-			models.countdown("Reswarming in {} sec")
+			ui.countdown("Reswarming in {} sec")
 		[swarm.dispatch(version=args.tag) for swarm in matched]
 
 
