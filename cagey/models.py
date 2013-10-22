@@ -60,17 +60,6 @@ class Velociraptor(object):
 		self.username = username
 		self.session.auth = self.get_credentials()
 
-	@classmethod
-	def viable(cls, base=None):
-		"""
-		Is this class viable for the given base?
-		"""
-		try:
-			cls(base).load(cls.uptest_url)
-			return True
-		except Exception:
-			return False
-
 	@staticmethod
 	def _get_base():
 		"""
