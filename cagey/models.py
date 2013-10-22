@@ -87,8 +87,9 @@ class Velociraptor(object):
 		username = self.username or getpass.getuser()
 		password = keyring.get_password('YOUGOV.LOCAL', username)
 		if password is None:
-			password = getpass.getpass("{username}@{hostname}'s password: ".format(
-				username=username, hostname=self.hostname()))
+			prompt_tmpl = "{username}@{hostname}'s password: "
+			prompt = prompt_tmpl.format(hostname=self.hostname(), **vars())
+			password = getpass.getpass(prompt)
 		return Credential(username, password)
 
 	def load(self, path):
