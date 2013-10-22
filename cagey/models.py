@@ -112,6 +112,8 @@ class Swarm(object):
 	"""
 	A VR Swarm
 	"""
+	base = '/api/v1/swarms/'
+
 	def __init__(self, vr, obj):
 		self._vr = vr
 		self.__dict__.update(obj)
@@ -131,7 +133,7 @@ class Swarm(object):
 		"""
 		Load all swarms
 		"""
-		swarm_obs = vr.load('/api/v1/swarms/')['objects']
+		swarm_obs = vr.load(cls.base)['objects']
 		swarms = [cls(vr, ob) for ob in swarm_obs]
 		return swarms
 
