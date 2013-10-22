@@ -74,9 +74,8 @@ class Velociraptor(object):
 		fallback = 'https://{name}/'.format(name=name)
 		return os.environ.get('VELOCIRAPTOR_URL', fallback)
 
-	@classmethod
-	def hostname(cls):
-		return six.moves.urllib.parse.urlparse(cls.base).hostname
+	def hostname(self):
+		return six.moves.urllib.parse.urlparse(self.base).hostname
 
 	session = requests.session()
 	session.headers = {
