@@ -2,9 +2,6 @@ from __future__ import print_function
 
 import getpass
 import re
-import time
-import sys
-import datetime
 import socket
 import os
 import collections
