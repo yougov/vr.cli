@@ -78,12 +78,10 @@ class Velociraptor(object):
 	def hostname(cls):
 		return six.moves.urllib.parse.urlparse(cls.base).hostname
 
-	base = _get_base.__func__()
 	session = requests.session()
 	session.headers = {
 		'Content-Type': 'application/json',
 	}
-	username = None
 
 	@jaraco.util.functools.once
 	def get_credentials(self):
