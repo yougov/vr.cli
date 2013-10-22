@@ -216,7 +216,7 @@ class Build(object):
 
 	@classmethod
 	def _for_app_and_tag(cls, vr, app, tag):
-		obj = dict(app='/api/v1/apps/' + app + '/', tag=tag)
+		obj = dict(app=App.base + app + '/', tag=tag)
 		return cls(vr, obj)
 
 	def __hash__(self):
@@ -226,3 +226,6 @@ class Build(object):
 
 	def __eq__(self, other):
 		return vars(self) == vars(other)
+
+class App(object):
+	base='/api/v1/apps/'
