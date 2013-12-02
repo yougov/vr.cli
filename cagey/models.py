@@ -53,7 +53,6 @@ class Velociraptor(object):
 	"""
 	A Velociraptor 2 HTTP API service
 	"""
-	uptest_url = '/api/uptest/latest'
 
 	def __init__(self, base=None, username=None):
 		self.base = base or self._get_base()
@@ -63,7 +62,7 @@ class Velociraptor(object):
 	@staticmethod
 	def _get_base():
 		"""
-		if 'deploy' resolves in your environment, use the hostname for which
+		if 'deploy' resolves in this environment, use the hostname for which
 		that name resolves.
 		Override with 'VELOCIRAPTOR_URL'
 		"""
