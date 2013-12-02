@@ -7,7 +7,7 @@ import argparse
 from jaraco.util import cmdline
 from jaraco.util import ui
 
-from . import models
+from vr.common import models
 
 
 class FilterExcludeAction(argparse.Action):
