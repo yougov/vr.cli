@@ -131,6 +131,5 @@ def handle_command_line():
 		help="Override the username used for authentication")
 	cmdline.Command.add_subparsers(parser)
 	args = parser.parse_args()
-	models.Velociraptor.username = args.username
 	args.vr = models.Velociraptor(args.url, args.username)
 	args.action.run(args)
