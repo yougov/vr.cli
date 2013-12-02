@@ -1,29 +1,4 @@
-3.1
----
-
-Use PATCH method when dispatching swarms.
-
-Countdown on 'swarm' and 'rebuild-all' is now disabled by default. Pass
-'--countdown' to enable it.
-
-Improved support for 'rebuild-all'.
-
-3.0
----
-
-Support Velociraptor 2. Drop support for Velociraptor 1.
-
-2.3
----
-
-Renamed ``cagey.swarms`` to ``cagey.models``.
-
-2.0
----
-
-Renamed 'reswarm' to 'swarm'.
-
 1.0
 ---
 
-Initial release.
+Initial release ported from cagey 3.1.

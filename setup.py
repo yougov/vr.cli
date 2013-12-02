@@ -6,14 +6,15 @@ with open('README') as stream:
 	long_description = stream.read()
 
 setup_params = dict(
-	name='cagey',
+	name='vr.cli',
 	use_hg_version=dict(increment='0.1'),
 	description="Command-line client for working with Velociraptor",
 	long_description=long_description,
 	author="Jason R. Coombs",
 	author_email="jaraco@jaraco.com",
-	url="https://bitbucket.org/jaraco/cagey",
+	url="https://bitbucket.org/yougov/vr.cli",
 	packages=setuptools.find_packages(),
+	namespace_packages=['vr'],
 	zip_safe=False,
 	classifiers = [
 		"Development Status :: 5 - Production/Stable",
@@ -24,7 +25,7 @@ setup_params = dict(
 	],
 	entry_points=dict(
 		console_scripts=[
-			'cagey = cagey.commands:handle_command_line',
+			'vr.cli = vr.cli:handle_command_line',
 		],
 	),
 	install_requires=[
