@@ -122,6 +122,29 @@ class Uptests(cmdline.Command):
 				print(result['results'])
 
 
+class Deploy(cmdline.Command):
+
+	@staticmethod
+	def find_release(spec):
+		if not spec.isdigit():
+			raise NotImplementedError("Release spec must be a release ID")
+		return int(spec)
+
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('release', type=cls.find_release)
+		parser.add_argument('host')
+		parser.add_argument('port', type=int)
+		parser.add_argument('proc')
+		parser.add_argument('-c', '--config-name', default='prod')
+
+	@classmethod
+	def run(cls, args):
+		release = models.Release(args.vr)
+		release.load(models.Release.base + str(args.release) + '/')
+		release.deploy(args.host, args.port, args.proc, args.config_name)
+
+
 def handle_command_line():
 	os.environ['VELOCIRAPTOR_AUTH_DOMAIN'] = 'YOUGOV.LOCAL'
 	parser = argparse.ArgumentParser()
