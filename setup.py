@@ -29,7 +29,7 @@ setup_params = dict(
 		],
 	),
 	install_requires=[
-		'jaraco.util>=8.5,<9dev',
+		'jaraco.util>=8.5,<10dev',
 		'vr.common>=3.7.1',
 	],
 	setup_requires=[
