@@ -149,7 +149,8 @@ def handle_command_line():
 	os.environ['VELOCIRAPTOR_AUTH_DOMAIN'] = 'YOUGOV.LOCAL'
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--url',
-		help="Velociraptor URL (defaults to https://deploy, resolved)")
+		help="Velociraptor URL (defaults to https://deploy, resolved; "
+			"override with VELOCIRAPTOR_URL)")
 	parser.add_argument('--username',
 		help="Override the username used for authentication")
 	cmdline.Command.add_subparsers(parser)
