@@ -18,6 +18,8 @@ Features
  - swarm
  - uptests
 
+For a complete list of commands, invoke vr.cli with --help.
+
 Build
 -----
 
@@ -27,9 +29,9 @@ prime an build before doing other swarm operations.
 Swarm
 -----
 
-This routine will invoke the swarm operation on a swarm at a given tag::
+This routine dispatch a swarm at a given tag::
 
-    cagey swarm MyApp-Recipe_.* 3.0 -x Recipe_Skipped
+    vr.cli swarm MyApp-Recipe_.* 3.0 -x Recipe_Skipped
 
 It takes as its parameters a filter of swarm name, a version number, and
 optionally some excludes.
