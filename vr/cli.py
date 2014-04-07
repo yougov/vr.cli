@@ -146,7 +146,6 @@ class Deploy(cmdline.Command):
 
 
 def handle_command_line():
-	os.environ['VELOCIRAPTOR_AUTH_DOMAIN'] = 'YOUGOV.LOCAL'
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--url',
 		help="Velociraptor URL (defaults to https://deploy, resolved; "
