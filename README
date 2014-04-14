@@ -42,3 +42,12 @@ Uptests
 -------
 
 This routine will provide a quick printout of all failing uptests.
+
+
+Configuration
+=============
+
+The ``vr.cli`` command requires a URL to communicate with the
+Velociraptor instance via its REST api. This can be specified using a
+command line ``--url`` flag or by setting the ``VELOCIRAPTOR_URL`` as a
+environment variable.
