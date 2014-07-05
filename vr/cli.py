@@ -33,7 +33,10 @@ class Swarm(cmdline.Command):
 		pprint.pprint(matched)
 		if args.countdown:
 			ui.countdown("Reswarming in {} sec")
-		[swarm.dispatch(version=args.tag) for swarm in matched]
+		changes = dict()
+		if args.tag != '-':
+			changes['version'] = args.tag
+		[swarm.dispatch(**changes) for swarm in matched]
 
 
 class Build(cmdline.Command):
