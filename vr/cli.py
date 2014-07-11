@@ -17,6 +17,7 @@ class FilterExcludeAction(argparse.Action):
 	def __call__(self, parser, namespace, values, option_string=None):
 		namespace.filter.exclusions.append(values)
 
+
 class Swarm(cmdline.Command):
 	@classmethod
 	def add_arguments(cls, parser):
