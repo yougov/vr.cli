@@ -30,6 +30,7 @@ setup_params = dict(
 	install_requires=[
 		'jaraco.util>=8.5,<11dev',
 		'vr.common>=3.7.1',
+		'more_itertools',
 	],
 	setup_requires=[
 		'hgtools',

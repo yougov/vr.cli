@@ -6,6 +6,7 @@ import argparse
 from jaraco.util import cmdline
 from jaraco.util import ui
 from jaraco.util import timing
+from more_itertools.recipes import consume
 
 from vr.common import models
 
@@ -88,19 +89,21 @@ class FilterParam(object):
 
 class ListProcs(FilterParam, cmdline.Command):
 
+	swarmtmpl = '{swarm.name} [{swarm.version}]'
+	proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
+
 	@classmethod
 	def run(cls, args):
-		swarmtmpl = '{swarm.name} [{swarm.version}]'
-		proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
-
 		all_swarms = models.Swarm.load_all(args.vr)
 		swarms = args.filter.matches(all_swarms)
+		consume(map(cls._print_swarm, swarms))
 
-		for swarm in swarms:
-			print()
-			print(swarmtmpl.format(**vars()))
-			for proc in swarm.procs:
-				print(proctmpl.format(**proc))
+	@classmethod
+	def _print_swarm(cls, swarm):
+		print()
+		print(cls.swarmtmpl.format(**vars()))
+		for proc in swarm.procs:
+			print(cls.proctmpl.format(**proc))
 
 
 class ListSwarms(FilterParam, cmdline.Command):
