@@ -82,7 +82,8 @@ class ListProcs(cmdline.Command):
 
 	@classmethod
 	def add_arguments(cls, parser):
-		parser.add_argument('filter', type=models.SwarmFilter)
+		parser.add_argument('filter', type=models.SwarmFilter, nargs='?',
+			default=models.SwarmFilter())
 
 	@classmethod
 	def run(cls, args):
@@ -102,7 +103,8 @@ class ListSwarms(cmdline.Command):
 
 	@classmethod
 	def add_arguments(cls, parser):
-		parser.add_argument('filter', type=models.SwarmFilter, nargs='?')
+		parser.add_argument('filter', type=models.SwarmFilter, nargs='?',
+			default=models.SwarmFilter)
 
 	@classmethod
 	def run(cls, args):
@@ -111,9 +113,7 @@ class ListSwarms(cmdline.Command):
 		tmpl = "Loaded {n_swarms} swarms in {watch.elapsed}"
 		msg = tmpl.format(n_swarms=len(all_swarms), watch=watch)
 		print(msg)
-		filtered_swarms = all_swarms
-		if args.filter:
-			filtered_swarms = args.filter.matches(all_swarms)
+		filtered_swarms = args.filter.matches(all_swarms)
 		[print(swarm) for swarm in sorted(filtered_swarms)]
 
 
