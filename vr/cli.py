@@ -78,12 +78,15 @@ class RebuildAll(cmdline.Command):
 			swarm.dispatch()
 
 
-class ListProcs(cmdline.Command):
+class FilterParam(object):
 
 	@classmethod
 	def add_arguments(cls, parser):
 		parser.add_argument('filter', type=models.SwarmFilter, nargs='?',
 			default=models.SwarmFilter())
+
+
+class ListProcs(FilterParam, cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
@@ -99,12 +102,8 @@ class ListProcs(cmdline.Command):
 			for proc in swarm.procs:
 				print(proctmpl.format(**proc))
 
-class ListSwarms(cmdline.Command):
 
-	@classmethod
-	def add_arguments(cls, parser):
-		parser.add_argument('filter', type=models.SwarmFilter, nargs='?',
-			default=models.SwarmFilter())
+class ListSwarms(FilterParam, cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
