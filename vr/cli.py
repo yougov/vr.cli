@@ -5,6 +5,7 @@ import argparse
 
 from jaraco.util import cmdline
 from jaraco.util import ui
+from jaraco.util import timing
 
 from vr.common import models
 
@@ -105,7 +106,11 @@ class ListSwarms(cmdline.Command):
 
 	@classmethod
 	def run(cls, args):
-		all_swarms = models.Swarm.load_all(args.vr)
+		with timing.Stopwatch() as watch:
+			all_swarms = models.Swarm.load_all(args.vr)
+		tmpl = "Loaded {n_swarms} swarms in {watch.elapsed}"
+		msg = tmpl.format(n_swarms=len(all_swarms), watch=watch)
+		print(msg)
 		filtered_swarms = all_swarms
 		if args.filter:
 			filtered_swarms = args.filter.matches(all_swarms)
