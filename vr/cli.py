@@ -3,6 +3,8 @@ from __future__ import print_function
 import pprint
 import argparse
 
+from six.moves import map
+
 from jaraco.util import cmdline
 from jaraco.util import ui
 from jaraco.util import timing
@@ -116,7 +118,7 @@ class ListSwarms(FilterParam, cmdline.Command):
 		msg = tmpl.format(n_swarms=len(all_swarms), watch=watch)
 		print(msg)
 		filtered_swarms = args.filter.matches(all_swarms)
-		[print(swarm) for swarm in sorted(filtered_swarms)]
+		consume(map(print, sorted(filtered_swarms)))
 
 
 class Uptests(cmdline.Command):
