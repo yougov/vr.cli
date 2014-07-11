@@ -104,7 +104,7 @@ class ListSwarms(cmdline.Command):
 	@classmethod
 	def add_arguments(cls, parser):
 		parser.add_argument('filter', type=models.SwarmFilter, nargs='?',
-			default=models.SwarmFilter)
+			default=models.SwarmFilter())
 
 	@classmethod
 	def run(cls, args):
