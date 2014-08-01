@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from functools import partial
 import pprint
 import argparse
 
@@ -90,23 +91,48 @@ class FilterParam(object):
 			default=models.SwarmFilter())
 
 
-class ListProcs(FilterParam, cmdline.Command):
+class Procs(FilterParam, cmdline.Command):
 
 	swarmtmpl = '{swarm.name} [{swarm.version}]'
-	proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
+	proctmpl = '{host:<22}  {port:<5}  {statename:<9}  {description}'
+
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('cmd')
+		parser.add_argument('filter', type=models.SwarmFilter)
 
 	@classmethod
 	def run(cls, args):
+		cmd_map = {
+		    'list': cls._list,
+		    'stop': partial(cls._exec, 'stop'),
+		    'start': partial(cls._exec, 'start'),
+		    'restart': partial(cls._exec, 'restart'),
+		}
+		action = cmd_map[args.cmd]
 		all_swarms = models.Swarm.load_all(args.vr)
 		swarms = args.filter.matches(all_swarms)
-		consume(map(cls._print_swarm, swarms))
+		consume(map(action, swarms))
+
+	@staticmethod
+	def _get_proc_from_dict(proc):
+	    host = models.Host(proc['host'])
+	    return host.get_proc(proc['group'])
 
 	@classmethod
-	def _print_swarm(cls, swarm):
+	def _list(cls, swarm):
 		print()
 		print(cls.swarmtmpl.format(**vars()))
 		for proc in swarm.procs:
 			print(cls.proctmpl.format(**proc))
+
+	@classmethod
+	def _exec(cls, proc_method, swarm):
+		print()
+		print(cls.swarmtmpl.format(**vars()))
+		for proc in swarm.procs:
+			print(proc_method.upper() + ' ' + cls.proctmpl.format(**proc))
+			getattr(cls._get_proc_from_dict(proc), proc_method)()
 
 
 class ListSwarms(FilterParam, cmdline.Command):
