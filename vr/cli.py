@@ -98,21 +98,20 @@ class Procs(FilterParam, cmdline.Command):
 
 	@classmethod
 	def add_arguments(cls, parser):
-		parser.add_argument('cmd')
-		super(Procs, cls).add_arguments(parser)
-
-	@classmethod
-	def run(cls, args):
-		cmd_map = {
+		action_lookup = {
 			'list': cls._list,
 			'stop': partial(cls._exec, 'stop'),
 			'start': partial(cls._exec, 'start'),
 			'restart': partial(cls._exec, 'restart'),
 		}
-		action = cmd_map[args.cmd]
+		parser.add_argument('subcmd', type=lambda val: action_lookup[val])
+		super(Procs, cls).add_arguments(parser)
+
+	@classmethod
+	def run(cls, args):
 		all_swarms = models.Swarm.load_all(args.vr)
 		swarms = args.filter.matches(all_swarms)
-		consume(map(action, swarms))
+		consume(map(args.subcmd, swarms))
 
 	@staticmethod
 	def _get_proc_from_dict(proc):
