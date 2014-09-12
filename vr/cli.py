@@ -104,10 +104,10 @@ class Procs(FilterParam, cmdline.Command):
 	@classmethod
 	def run(cls, args):
 		cmd_map = {
-		    'list': cls._list,
-		    'stop': partial(cls._exec, 'stop'),
-		    'start': partial(cls._exec, 'start'),
-		    'restart': partial(cls._exec, 'restart'),
+			'list': cls._list,
+			'stop': partial(cls._exec, 'stop'),
+			'start': partial(cls._exec, 'start'),
+			'restart': partial(cls._exec, 'restart'),
 		}
 		action = cmd_map[args.cmd]
 		all_swarms = models.Swarm.load_all(args.vr)
@@ -116,8 +116,8 @@ class Procs(FilterParam, cmdline.Command):
 
 	@staticmethod
 	def _get_proc_from_dict(proc):
-	    host = models.Host(proc['host'])
-	    return host.get_proc(proc['group'])
+		host = models.Host(proc['host'])
+		return host.get_proc(proc['group'])
 
 	@classmethod
 	def _list(cls, swarm):
