@@ -48,6 +48,8 @@ Configuration
 =============
 
 The ``vr.cli`` command requires a URL to communicate with the
-Velociraptor instance via its REST api. This can be specified using a
-command line ``--url`` flag or by setting the ``VELOCIRAPTOR_URL`` as a
-environment variable.
+Velociraptor instance via its REST api. By default, the URL is inferred from
+the name ``deploy`` as resolved by DNS. If ``deploy`` resolves as
+``deploy.example.com``, ``vr.cli`` will use https://deploy.example.com as
+the URL. The value can be overridden by passing ``--url`` to the command or by
+setting the ``VELOCIRAPTOR_URL`` environment variable.
