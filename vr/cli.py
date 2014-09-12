@@ -98,12 +98,12 @@ class Procs(FilterParam, cmdline.Command):
 
 	@classmethod
 	def add_arguments(cls, parser):
-		action_lookup = {
-			'list': cls._list,
-			'stop': partial(cls._exec, 'stop'),
-			'start': partial(cls._exec, 'start'),
-			'restart': partial(cls._exec, 'restart'),
-		}
+		action_lookup = dict(
+			list=cls._list,
+			stop=partial(cls._exec, 'stop'),
+			start=partial(cls._exec, 'start'),
+			restart=partial(cls._exec, 'restart'),
+		)
 		parser.add_argument('subcmd', type=lambda val: action_lookup[val])
 		super(Procs, cls).add_arguments(parser)
 
