@@ -99,7 +99,7 @@ class Procs(FilterParam, cmdline.Command):
 	@classmethod
 	def add_arguments(cls, parser):
 		parser.add_argument('cmd')
-		parser.add_argument('filter', type=models.SwarmFilter)
+		super(Procs, cls).add_arguments(parser)
 
 	@classmethod
 	def run(cls, args):
