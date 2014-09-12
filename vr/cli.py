@@ -94,7 +94,7 @@ class FilterParam(object):
 class Procs(FilterParam, cmdline.Command):
 
 	swarmtmpl = '{swarm.name} [{swarm.version}]'
-	proctmpl = '{host:<22}  {port:<5}  {statename:<9}  {description}'
+	proctmpl = '  {host:<22}  {port:<5}  {statename:<9}  {description}'
 
 	@classmethod
 	def add_arguments(cls, parser):
