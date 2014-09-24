@@ -32,9 +32,14 @@ setup_params = dict(
 		'vr.common>=3.7.1',
 		'more_itertools',
 		'six',
+		'datadiff>=1.1.5.jaraco.20140924',
+		'pyyaml',
 	],
 	setup_requires=[
 		'hgtools',
+	],
+	dependency_links=[
+		'https://dl.dropboxusercontent.com/u/54081/cheeseshop/index.html',
 	],
 )
 if __name__ == '__main__':

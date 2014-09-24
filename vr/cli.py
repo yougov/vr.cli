@@ -3,9 +3,12 @@ from __future__ import print_function
 from functools import partial
 import pprint
 import argparse
+import io
 
 from six.moves import map
 
+import yaml
+import datadiff
 from jaraco.util import cmdline
 from jaraco.util import ui
 from jaraco.util import timing
@@ -180,6 +183,27 @@ class Deploy(cmdline.Command):
 		release = models.Release(args.vr)
 		release.load(models.Release.base + str(args.release) + '/')
 		release.deploy(args.host, args.port, args.proc, args.config_name)
+
+
+class CompareReleases(cmdline.Command):
+	@classmethod
+	def add_arguments(cls, parser):
+		parser.add_argument('orig', type=Deploy.find_release)
+		parser.add_argument('changed', type=Deploy.find_release)
+
+	@classmethod
+	def load_config(cls, args, release_id):
+		release = models.Release(args.vr)
+		template = models.Release.base + '{release_id}/'
+		release.load(template.format(**locals()))
+		config = io.StringIO(release.config_yaml)
+		return yaml.safe_load(config)
+
+	@classmethod
+	def run(cls, args):
+		orig = cls.load_config(args, args.orig)
+		changed = cls.load_config(args, args.changed)
+		print(datadiff.diff(orig, changed))
 
 
 def handle_command_line():
