@@ -32,7 +32,7 @@ setup_params = dict(
 		'vr.common>=3.7.1',
 		'more_itertools',
 		'six',
-		'datadiff>=1.1.5.jaraco.20140924',
+		'datadiff>=1.1.6',
 		'pyyaml',
 	],
 	setup_requires=[
