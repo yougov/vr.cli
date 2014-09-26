@@ -38,9 +38,6 @@ setup_params = dict(
 	setup_requires=[
 		'hgtools',
 	],
-	dependency_links=[
-		'https://dl.dropboxusercontent.com/u/54081/cheeseshop/index.html',
-	],
 )
 if __name__ == '__main__':
 	setuptools.setup(**setup_params)
