@@ -3,11 +3,9 @@ from __future__ import print_function
 from functools import partial
 import pprint
 import argparse
-import io
 
 from six.moves import map
 
-import yaml
 import datadiff
 from jaraco.util import cmdline
 from jaraco.util import ui
@@ -196,8 +194,7 @@ class CompareReleases(cmdline.Command):
         release = models.Release(args.vr)
         template = models.Release.base + '{release_id}/'
         release.load(template.format(**locals()))
-        config = io.StringIO(release.config_yaml)
-        return yaml.safe_load(config)
+        return release.parsed_config()
 
     @classmethod
     def run(cls, args):
