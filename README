@@ -43,6 +43,16 @@ Uptests
 
 This routine will provide a quick printout of all failing uptests.
 
+Procs
+-----
+
+List, start, or stop procs.
+
+Compare Releases
+----------------
+
+Compare the configuration of any two releases (indicated by release ID).
+
 
 Configuration
 =============
