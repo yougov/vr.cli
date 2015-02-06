@@ -94,8 +94,9 @@ class FilterParam(object):
 
 class Procs(FilterParam, cmdline.Command):
 
-    swarmtmpl = '{swarm.name} [{swarm.version}]'
-    proctmpl = '{host:<22}  {port:<5}  {statename:<9}  {description}'
+    proctmpl = (
+        '{app_name}-{config_name}-{proc_name} [{version}]    '
+        '{host:<22}  {port:<5}  {statename:<9}  {description}')
 
     @classmethod
     def add_arguments(cls, parser):
@@ -106,13 +107,20 @@ class Procs(FilterParam, cmdline.Command):
             restart=partial(cls._exec, 'restart'),
         )
         parser.add_argument('subcmd', type=lambda val: action_lookup[val])
+        parser.add_argument('--host', default=None,
+                            help='Apply actions to this host only')
         super(Procs, cls).add_arguments(parser)
 
     @classmethod
     def run(cls, args):
         all_swarms = models.Swarm.load_all(args.vr)
         swarms = args.filter.matches(all_swarms)
-        consume(map(args.subcmd, swarms))
+        procs = []
+        for swarm in swarms:
+            for proc in swarm.procs:
+                if args.host is None or args.host == proc['host']:
+                    procs.append(proc)
+        consume(map(args.subcmd, procs))
 
     @staticmethod
     def _get_proc_from_dict(proc):
@@ -120,19 +128,13 @@ class Procs(FilterParam, cmdline.Command):
         return host.get_proc(proc['group'])
 
     @classmethod
-    def _list(cls, swarm):
-        print()
-        print(cls.swarmtmpl.format(**vars()))
-        for proc in swarm.procs:
-            print('  ' + cls.proctmpl.format(**proc))
+    def _list(cls, proc):
+        print(cls.proctmpl.format(**proc))
 
     @classmethod
-    def _exec(cls, proc_method, swarm):
-        print()
-        print(cls.swarmtmpl.format(**vars()))
-        for proc in swarm.procs:
-            print(proc_method.upper() + ' ' + cls.proctmpl.format(**proc))
-            getattr(cls._get_proc_from_dict(proc), proc_method)()
+    def _exec(cls, proc_method, proc):
+        print(proc_method.upper() + ' ' + cls.proctmpl.format(**proc))
+        getattr(cls._get_proc_from_dict(proc), proc_method)()
 
 
 class ListSwarms(FilterParam, cmdline.Command):
