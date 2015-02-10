@@ -1,3 +1,18 @@
+2.4
+---
+
+Added ``--host`` parameter to ``procs list`` command.
+
+2.3
+---
+
+Eliminate dependency on pyyaml.
+
+2.2
+---
+
+Use datadiff 1.1.6.
+
 2.1
 ---
 
