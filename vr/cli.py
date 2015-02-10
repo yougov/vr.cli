@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-from functools import partial
 import pprint
 import argparse
 
@@ -11,6 +10,7 @@ from jaraco.util import cmdline
 from jaraco.util import ui
 from jaraco.util import timing
 from more_itertools.recipes import consume
+from jaraco.functools import once
 
 from vr.common import models
 
@@ -99,13 +99,8 @@ class Procs(FilterParam, cmdline.Command):
 
     @classmethod
     def add_arguments(cls, parser):
-        action_lookup = dict(
-            list=cls._list,
-            stop=partial(cls._exec, 'stop'),
-            start=partial(cls._exec, 'start'),
-            restart=partial(cls._exec, 'restart'),
-        )
-        parser.add_argument('subcmd', type=lambda val: action_lookup[val])
+        method_lookup = lambda val: getattr(cls, '_'+val)
+        parser.add_argument('method', type=method_lookup)
         parser.add_argument('--host', default=None,
                             help='Apply actions to this host only')
         super(Procs, cls).add_arguments(parser)
@@ -114,27 +109,47 @@ class Procs(FilterParam, cmdline.Command):
     def run(cls, args):
         all_swarms = models.Swarm.load_all(args.vr)
         swarms = args.filter.matches(all_swarms)
-        consume(map(args.subcmd, swarms))
+        proc_filter = lambda proc: True
+        if args.host:
+            proc_filter = lambda proc: proc['host'] == args.host
+        command = cls(proc_filter)
+        for swarm in swarms:
+            args.method(command, swarm)
 
     @staticmethod
     def _get_proc_from_dict(proc):
         host = models.Host(proc['host'])
         return host.get_proc(proc['group'])
 
-    @classmethod
-    def _list(cls, swarm):
-        print()
-        print(cls.swarmtmpl.format(**vars()))
-        for proc in swarm.procs:
-            print('  ' + cls.proctmpl.format(**proc))
+    def __init__(self, proc_filter):
+        self.proc_filter = proc_filter
 
     @classmethod
-    def _exec(cls, proc_method, swarm):
+    def print_swarm(cls, swarm):
         print()
         print(cls.swarmtmpl.format(**vars()))
-        for proc in swarm.procs:
-            print(proc_method.upper() + ' ' + cls.proctmpl.format(**proc))
-            getattr(cls._get_proc_from_dict(proc), proc_method)()
+
+    def _list(self, swarm):
+        print_swarm = once(lambda swarm: self.print_swarm(swarm))
+        for proc in filter(self.proc_filter, swarm.procs):
+            print_swarm(swarm)
+            print('  ' + self.proctmpl.format(**proc))
+
+    def _exec(self, proc_method, swarm):
+        print_swarm = once(lambda swarm: self.print_swarm(swarm))
+        for proc in filter(self.proc_filter, swarm.procs):
+            print_swarm(swarm)
+            print(proc_method.upper() + ' ' + self.proctmpl.format(**proc))
+            getattr(self._get_proc_from_dict(proc), proc_method)()
+
+    def _start(self, swarm):
+        return self._exec('start', swarm)
+
+    def _stop(self, swarm):
+        return self._exec('stop', swarm)
+
+    def _restart(self, swarm):
+        return self._exec('restart', swarm)
 
 
 class ListSwarms(FilterParam, cmdline.Command):
