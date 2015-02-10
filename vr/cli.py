@@ -101,18 +101,16 @@ class Procs(FilterParam, cmdline.Command):
     def add_arguments(cls, parser):
         method_lookup = lambda val: getattr(cls, '_'+val)
         parser.add_argument('method', type=method_lookup)
-        parser.add_argument('--host', default=None,
-                            help='Apply actions to this host only')
+        parser.add_argument('--host', type=models.ProcHostFilter,
+            default=models.ProcHostFilter(),
+            help='Apply actions to this host only')
         super(Procs, cls).add_arguments(parser)
 
     @classmethod
     def run(cls, args):
         all_swarms = models.Swarm.load_all(args.vr)
         swarms = args.filter.matches(all_swarms)
-        proc_filter = lambda proc: True
-        if args.host:
-            proc_filter = lambda proc: proc['host'] == args.host
-        command = cls(proc_filter)
+        command = cls(args.host)
         for swarm in swarms:
             args.method(command, swarm)
 
@@ -131,13 +129,13 @@ class Procs(FilterParam, cmdline.Command):
 
     def _list(self, swarm):
         print_swarm = once(lambda swarm: self.print_swarm(swarm))
-        for proc in filter(self.proc_filter, swarm.procs):
+        for proc in self.proc_filter.matches(swarm.procs):
             print_swarm(swarm)
             print('  ' + self.proctmpl.format(**proc))
 
     def _exec(self, proc_method, swarm):
         print_swarm = once(lambda swarm: self.print_swarm(swarm))
-        for proc in filter(self.proc_filter, swarm.procs):
+        for proc in self.proc_filter.matches(swarm.procs):
             print_swarm(swarm)
             print(proc_method.upper() + ' ' + self.proctmpl.format(**proc))
             getattr(self._get_proc_from_dict(proc), proc_method)()
