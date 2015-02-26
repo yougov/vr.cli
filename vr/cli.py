@@ -6,10 +6,9 @@ import argparse
 from six.moves import map
 
 import datadiff
-from jaraco.util import cmdline
-from jaraco.util import ui
-from jaraco.util import timing
 from more_itertools.recipes import consume
+from jaraco import timing
+from jaraco.ui import cmdline, progress
 from jaraco.functools import once
 
 from vr.common import models
@@ -39,7 +38,7 @@ class Swarm(cmdline.Command):
         print("Matched", len(matched), "apps")
         pprint.pprint(matched)
         if args.countdown:
-            ui.countdown("Reswarming in {} sec")
+            progress.countdown("Reswarming in {} sec")
         changes = dict()
         if args.tag != '-':
             changes['version'] = args.tag
@@ -76,7 +75,7 @@ class RebuildAll(cmdline.Command):
         print("Matched", len(swarms), "apps")
         pprint.pprint(swarms)
         if args.countdown:
-            models.countdown("Rebuilding in {} sec")
+            progress.countdown("Rebuilding in {} sec")
         builds = [swarm.new_build() for swarm in swarms]
         for build in set(builds):
             build.assemble()
