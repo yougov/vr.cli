@@ -7,7 +7,7 @@ with open('README') as stream:
 
 setup_params = dict(
     name='vr.cli',
-    use_hg_version=dict(increment='0.1'),
+    use_scm_version=True,
     description="Command-line client for working with Velociraptor",
     long_description=long_description,
     author="Jason R. Coombs",
@@ -37,7 +37,7 @@ setup_params = dict(
         'jaraco.timing',
     ],
     setup_requires=[
-        'hgtools',
+        'setuptools_scm',
     ],
 )
 if __name__ == '__main__':
