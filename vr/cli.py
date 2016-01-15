@@ -1,3 +1,9 @@
+"""
+Command-line API for Velociraptor. Wraps behavior from v1 API
+in routines for performing common operations. Invoke using
+the `vr.cli` console entry point or with `python -m vr.cli`.
+"""
+
 from __future__ import print_function
 
 import pprint
