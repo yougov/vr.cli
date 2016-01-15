@@ -1,3 +1,8 @@
+2.6
+---
+
+Meta updates to packaging and testing.
+
 2.5
 ---
 
