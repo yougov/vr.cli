@@ -5,6 +5,8 @@ Fixed issue where lack of ``-v`` would result in a TypeError on
 Python 3. Instead, use ``--log-level`` (or simply ``-l``) to
 set the log level with something like "INFO" or "debug".
 
+Bump dependency on vr.common fixing another issue on Python 3.
+
 2.7
 ---
 
