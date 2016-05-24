@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import pprint
 import argparse
+import logging
 
 from six.moves import map
 
@@ -39,7 +40,7 @@ class Swarm(cmdline.Command):
 
     @classmethod
     def run(cls, args):
-        swarms = models.Swarm.load_all(args.vr)
+        swarms = _get_swarms(args)
         matched = list(args.filter.matches(swarms))
         print("Matched", len(matched), "apps")
         pprint.pprint(matched)
@@ -76,7 +77,7 @@ class RebuildAll(cmdline.Command):
 
     @classmethod
     def run(cls, args):
-        swarms = models.Swarm.load_all(args.vr)
+        swarms = _get_swarms(args)
         swarms = list(args.filter.matches(swarms))
         print("Matched", len(swarms), "apps")
         pprint.pprint(swarms)
@@ -113,7 +114,7 @@ class Procs(FilterParam, cmdline.Command):
 
     @classmethod
     def run(cls, args):
-        all_swarms = models.Swarm.load_all(args.vr)
+        all_swarms = _get_swarms(args)
         swarms = args.filter.matches(all_swarms)
         command = cls(args.host)
         for swarm in swarms:
@@ -160,7 +161,7 @@ class ListSwarms(FilterParam, cmdline.Command):
     @classmethod
     def run(cls, args):
         with timing.Stopwatch() as watch:
-            all_swarms = models.Swarm.load_all(args.vr)
+            all_swarms = _get_swarms(args)
         tmpl = "Loaded {n_swarms} swarms in {watch.elapsed}"
         msg = tmpl.format(n_swarms=len(all_swarms), watch=watch)
         print(msg)
@@ -223,14 +224,41 @@ class CompareReleases(cmdline.Command):
         print(datadiff.diff(orig, changed))
 
 
+def _get_swarms(args):
+    query_tokens = args.filter.split('-')
+    keys = ['app__name', 'config_name', 'proc_name']
+    params = {}
+    for key, val in zip(keys, query_tokens):
+        if val != '.*':
+            params[key] = val
+
+    logging.info('Searching for swarms: %s', params)
+    all_swarms = models.Swarm.load_all(args.vr, params)
+
+    return all_swarms
+
+
+def _set_verbosity(args):
+    if args.verbosity == 1:
+        logging.basicConfig(level=logging.INFO)
+    elif args.verbosity > 1:
+        logging.basicConfig(level=logging.DEBUG)
+
+
 def handle_command_line():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--url',
+    parser.add_argument(
+        '--url',
         help="Velociraptor URL (defaults to https://deploy, resolved; "
-            "override with VELOCIRAPTOR_URL)")
-    parser.add_argument('--username',
+        "override with VELOCIRAPTOR_URL)")
+    parser.add_argument(
+        '--username',
         help="Override the username used for authentication")
+    parser.add_argument(
+        "-v", "--verbosity", action="count",
+        help="increase output verbosity")
     cmdline.Command.add_subparsers(parser)
     args = parser.parse_args()
+    _set_verbosity(args)
     args.vr = models.Velociraptor(args.url, args.username)
     args.action.run(args)
