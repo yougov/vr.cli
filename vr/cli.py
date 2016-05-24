@@ -227,18 +227,20 @@ class CompareReleases(cmdline.Command):
         print(datadiff.diff(orig, changed))
 
 
-def _get_swarms(args):
-    query_tokens = args.filter.split('-')
+def _parse_swarm_params(filter):
+    query_tokens = filter.split('-')
     keys = 'app__name', 'config_name', 'proc_name'
-    params = {}
-    for key, val in zip(keys, query_tokens):
-        if val != '.*':
-            params[key] = val
+    return {
+        key: val
+        for key, val in zip(keys, query_tokens)
+        if val != '.*'
+    }
 
+
+def _get_swarms(args):
+    params = _parse_swarm_params(args.filter)
     logging.info('Searching for swarms: %s', params)
-    all_swarms = models.Swarm.load_all(args.vr, params)
-
-    return all_swarms
+    return models.Swarm.load_all(args.vr, params)
 
 
 def handle_command_line():
