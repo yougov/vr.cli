@@ -14,6 +14,7 @@ import warnings
 from six.moves import map
 
 import datadiff
+import jaraco.logging
 from more_itertools.recipes import consume
 from jaraco import timing
 from jaraco.ui import cmdline, progress
@@ -240,13 +241,6 @@ def _get_swarms(args):
     return all_swarms
 
 
-def _set_verbosity(args):
-    if args.verbosity == 1:
-        logging.basicConfig(level=logging.INFO)
-    elif args.verbosity > 1:
-        logging.basicConfig(level=logging.DEBUG)
-
-
 def handle_command_line():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -256,11 +250,9 @@ def handle_command_line():
     parser.add_argument(
         '--username',
         help="Override the username used for authentication")
-    parser.add_argument(
-        "-v", "--verbosity", action="count",
-        help="increase output verbosity")
+    jaraco.logging.add_arguments(parser)
     cmdline.Command.add_subparsers(parser)
     args = parser.parse_args()
-    _set_verbosity(args)
+    jaraco.logging.setup(args)
     args.vr = models.Velociraptor(args.url, args.username)
     args.action.run(args)

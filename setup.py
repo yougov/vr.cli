@@ -36,6 +36,7 @@ setup_params = dict(
         'datadiff>=1.1.6',
         'jaraco.ui>=1.2',
         'jaraco.timing',
+        'jaraco.logging',
     ],
     extras_require={
     },

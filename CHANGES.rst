@@ -1,3 +1,10 @@
+2.7.1
+-----
+
+Fixed issue where lack of ``-v`` would result in a TypeError on
+Python 3. Instead, use ``--log-level`` (or simply ``-l``) to
+set the log level with something like "INFO" or "debug".
+
 2.7
 ---
 
