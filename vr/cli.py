@@ -9,6 +9,7 @@ from __future__ import print_function
 import pprint
 import argparse
 import logging
+import warnings
 
 from six.moves import map
 
@@ -60,6 +61,7 @@ class Build(cmdline.Command):
 
     @classmethod
     def run(cls, args):
+        warnings.warn("Build command fails for containerized apps; see #189")
         build = models.Build._for_app_and_tag(args.vr, args.app, args.tag)
         build.assemble()
 
