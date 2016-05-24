@@ -233,8 +233,12 @@ def _parse_swarm_params(filter):
     return {
         key: val
         for key, val in zip(keys, query_tokens)
-        if val != '.*'
+        if not _has_regex(val)
     }
+
+
+def _has_regex(string):
+    return '.*' in string
 
 
 def _get_swarms(args):
