@@ -1,3 +1,10 @@
+2.7.2
+-----
+
+Fixed issue where regular expressions were being passed in the
+search parameters, preventing matches. Now any fields that
+appear to have regular expressions are excluded.
+
 2.7.1
 -----
 
