@@ -229,7 +229,7 @@ class CompareReleases(cmdline.Command):
 
 def _get_swarms(args):
     query_tokens = args.filter.split('-')
-    keys = ['app__name', 'config_name', 'proc_name']
+    keys = 'app__name', 'config_name', 'proc_name'
     params = {}
     for key, val in zip(keys, query_tokens):
         if val != '.*':
