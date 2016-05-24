@@ -1,3 +1,9 @@
+2.7
+---
+
+Filter on specific query parameters when loading swarms. Improves
+speed of queries involving swarms.
+
 2.6
 ---
 
