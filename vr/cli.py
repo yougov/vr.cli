@@ -259,6 +259,6 @@ def handle_command_line():
     jaraco.logging.add_arguments(parser)
     cmdline.Command.add_subparsers(parser)
     args = parser.parse_args()
-    jaraco.logging.setup(args)
+    jaraco.logging.setup(args, format='%(message)s')
     args.vr = models.Velociraptor(args.url, args.username)
     args.action.run(args)
