@@ -256,7 +256,7 @@ def handle_command_line():
     parser.add_argument(
         '--username',
         help="Override the username used for authentication")
-    jaraco.logging.add_arguments(parser)
+    jaraco.logging.add_arguments(parser, default_level=logging.WARNING)
     cmdline.Command.add_subparsers(parser)
     args = parser.parse_args()
     jaraco.logging.setup(args, format='%(message)s')
