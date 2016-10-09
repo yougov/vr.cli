@@ -1,8 +1,19 @@
-vr.cli
-======
+.. image:: https://img.shields.io/pypi/v/vr.cli.svg
+   :target: https://pypi.org/project/vr.cli
+
+.. image:: https://img.shields.io/pypi/pyversions/vr.cli.svg
+
+.. image:: https://img.shields.io/pypi/dm/vr.cli.svg
+
+.. image:: https://img.shields.io/travis/yougov/vr.cli/master.svg
+   :target: http://travis-ci.org/yougov/vr.cli
 
 A command-line interface for wrangling Velociraptor swarms and automating
 some common operations.
+
+License is indicated in the project metadata (typically one or more
+of the Trove classifiers). For more details, see `this explanation
+<https://github.com/jaraco/skeleton/issues/1>`_.
 
 Implementation
 ==============

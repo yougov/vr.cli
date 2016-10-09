@@ -1,5 +1,5 @@
-Welcome to skeleton documentation!
-========================================
+Welcome to vr.cli documentation!
+================================
 
 .. toctree::
    :maxdepth: 1
@@ -7,7 +7,7 @@ Welcome to skeleton documentation!
    history
 
 
-.. automodule:: skeleton
+.. automodule:: vr.cli
     :members:
     :undoc-members:
     :show-inheritance:
