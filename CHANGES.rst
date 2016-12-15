@@ -1,3 +1,16 @@
+2.9
+---
+
+First release following move to Github. Incorporated `project
+skeleton from jaraco <https://github.com/jaraco/skeleton>`_.
+Enabled automatic releases of tagged commits.
+
+2.8
+---
+
+Remove warning in build about containerized apps now that the
+issue is fixed
+
 2.7.2
 -----
 
