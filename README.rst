@@ -3,20 +3,17 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/vr.cli.svg
 
-.. image:: https://img.shields.io/pypi/dm/vr.cli.svg
-
 .. image:: https://img.shields.io/travis/yougov/vr.cli/master.svg
-   :target: http://travis-ci.org/yougov/vr.cli
+   :target: https://travis-ci.org/yougov/vr.cli
+
+.. .. image:: https://img.shields.io/appveyor/ci/jaraco/skeleton/master.svg
+..    :target: https://ci.appveyor.com/project/jaraco/skeleton/branch/master
+
+.. .. image:: https://readthedocs.org/projects/skeleton/badge/?version=latest
+..    :target: https://skeleton.readthedocs.io/en/latest/?badge=latest
 
 A command-line interface for wrangling Velociraptor swarms and automating
 some common operations.
-
-License
-=======
-
-License is indicated in the project metadata (typically one or more
-of the Trove classifiers). For more details, see `this explanation
-<https://github.com/jaraco/skeleton/issues/1>`_.
 
 Implementation
 ==============
