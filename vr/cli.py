@@ -95,7 +95,8 @@ class FilterParam(object):
 
     @classmethod
     def add_arguments(cls, parser):
-        parser.add_argument('filter', type=models.SwarmFilter, nargs='?',
+        parser.add_argument(
+            'filter', type=models.SwarmFilter, nargs='?',
             default=models.SwarmFilter())
 
 
@@ -106,9 +107,11 @@ class Procs(FilterParam, cmdline.Command):
 
     @classmethod
     def add_arguments(cls, parser):
-        method_lookup = lambda val: getattr(cls, '_'+val)
+        def method_lookup(val):
+            return getattr(cls, '_' + val)
         parser.add_argument('method', type=method_lookup)
-        parser.add_argument('--host', type=models.ProcHostFilter,
+        parser.add_argument(
+            '--host', type=models.ProcHostFilter,
             default=models.ProcHostFilter(),
             help='Apply actions to this host only')
         super(Procs, cls).add_arguments(parser)
