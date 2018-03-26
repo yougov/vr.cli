@@ -1,3 +1,9 @@
+2.10
+----
+
+Bump to vr.common 5.1 to allow credentials to be supplied by
+environment variables.
+
 2.9
 ---
 

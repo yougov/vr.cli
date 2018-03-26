@@ -93,3 +93,11 @@ To do this, it needs a system name and username. For the username, it uses
 the username resolved above. For the system name, it defaults to the domain
 name of the Velociraptor URL (as resolved above). The domain can be overridden
 by setting the ``VELOCIRAPTOR_AUTH_DOMAIN`` environment variable.
+
+Environment Variables
+---------------------
+
+For automated runs, it's also possible to supply authentication credentials to
+Velociraptor by setting the ``VELOCIRAPTOR_USERNAME`` and
+``VELOCIRAPTOR_PASSWORD`` environment variables, which will supersede
+the interactive values above.

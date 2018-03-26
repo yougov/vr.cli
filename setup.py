@@ -29,7 +29,7 @@ setup_params = dict(
     namespace_packages=name.split('.')[:-1],
     install_requires=[
         'jaraco.functools>=1.0,<2dev',
-        'vr.common>=4.6.1',
+        'vr.common>=5.1',
         'more_itertools',
         'six',
         'datadiff>=1.1.6',
