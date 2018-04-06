@@ -66,7 +66,7 @@ params = dict(
         "Intended Audience :: System Administrators",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3 :: only",
+        "Programming Language :: Python :: 3 :: Only",
     ],
     entry_points={
         'console_scripts': [
