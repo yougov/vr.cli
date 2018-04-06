@@ -28,6 +28,7 @@ params = dict(
     packages=setuptools.find_packages(),
     include_package_data=True,
     namespace_packages=name.split('.')[:-1],
+    python_requires='>=2.7',
     install_requires=[
         'jaraco.functools>=1.0,<2dev',
         'vr.common>=5.1',
@@ -41,7 +42,7 @@ params = dict(
     extras_require={
         'testing': [
             # upstream
-            'pytest>=2.8',
+            'pytest>=3.5',
             'pytest-sugar>=0.9.1',
             'collective.checkdocs',
             'pytest-flake8',
