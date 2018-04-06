@@ -28,7 +28,7 @@ params = dict(
     packages=setuptools.find_packages(),
     include_package_data=True,
     namespace_packages=name.split('.')[:-1],
-    python_requires='>=2.7',
+    python_requires='>=3.5',
     install_requires=[
         'jaraco.functools>=1.0,<2dev',
         'vr.common>=5.1',
@@ -65,8 +65,8 @@ params = dict(
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: System Administrators",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: only",
     ],
     entry_points={
         'console_scripts': [
