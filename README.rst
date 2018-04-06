@@ -83,7 +83,8 @@ using the current username (getpass.getuser). If your username on your local
 host doesn't match your username in Velociraptor, you can override the
 username by passing ``--username`` to the command or by setting any of the
 `environment variables searched by getuser
-<https://docs.python.org/2/library/getpass.html#getpass.getuser>`_.
+<https://docs.python.org/3/library/getpass.html#getpass.getuser>`_
+or by setting ``VELOCIRAPTOR_USERNAME`` environment variable.
 
 ``vr.cli`` also leverages keyring to avoid entering passwords each time.
 To do this, it needs a system name and username. For the username, it uses
@@ -94,7 +95,8 @@ by setting the ``VELOCIRAPTOR_AUTH_DOMAIN`` environment variable.
 Environment Variables
 ---------------------
 
-For automated runs, it's also possible to supply authentication credentials to
+For unattended use, it's also possible to supply authentication credentials to
 Velociraptor by setting the ``VELOCIRAPTOR_USERNAME`` and
 ``VELOCIRAPTOR_PASSWORD`` environment variables, which will supersede
-the interactive values above.
+the interactive values above. This technique is strongly discouraged for
+interactive use.

@@ -9,6 +9,7 @@ from __future__ import print_function
 import pprint
 import argparse
 import logging
+import os
 
 from six.moves import map
 
@@ -256,7 +257,9 @@ def handle_command_line():
         "override with VELOCIRAPTOR_URL)")
     parser.add_argument(
         '--username',
-        help="Override the username used for authentication")
+        help="Override the username used for authentication",
+        default=os.environ.get('VELOCIRAPTOR_USERNAME'),
+    )
     jaraco.logging.add_arguments(parser, default_level=logging.WARNING)
     cmdline.Command.add_subparsers(parser)
     args = parser.parse_args()

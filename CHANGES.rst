@@ -1,3 +1,8 @@
+2.11
+----
+
+Allow username to be supplied by environment variable also.
+
 2.10
 ----
 
