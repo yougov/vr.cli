@@ -1,3 +1,9 @@
+3.1
+---
+
+#2: Add support for adding and removing ingredients when
+dispatching a swarm.
+
 3.0
 ---
 
