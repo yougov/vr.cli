@@ -39,10 +39,38 @@ class Swarm(cmdline.Command):
             default=False,
             help="Give a 5 second countdown before dispatching swarms.",
         )
+        parser.add_argument('--add-ingredients',
+                            default=[],
+                            help="List of ingredients to be appended to the "
+                                 "end of ingredient list of each swarm.",
+                            nargs='+')
+
+        parser.add_argument('--remove-ingredients',
+                            default=[],
+                            help="List of ingredients to be removed from each "
+                                 "swarm.",
+                            nargs='+')
+
+        parser.add_argument('--replace-ingredients',
+                            default=[],
+                            help="List of ingredients to completely replace "
+                                 "existing ingredient list for each swarm.",
+                            nargs='+')
 
     @classmethod
     def run(cls, args):
         swarms = _get_swarms(args)
+        assert not (args.replace_ingredients and
+                    (args.add_ingredients or args.remove_ingredients)), \
+            "Replacing ingredients is mutually exclusive with adding or " \
+            "removing them."
+
+        add_ingredients = _resolve_ingredients(args.vr, args.add_ingredients)
+        remove_ingredients = _resolve_ingredients(args.vr,
+                                                  args.remove_ingredients)
+        replace_ingredients = _resolve_ingredients(args.vr,
+                                                   args.replace_ingredients)
+
         matched = list(args.filter.matches(swarms))
         print("Matched", len(matched), "apps")
         pprint.pprint(matched)
@@ -51,7 +79,29 @@ class Swarm(cmdline.Command):
         changes = dict()
         if args.tag != '-':
             changes['version'] = args.tag
-        [swarm.dispatch(**changes) for swarm in matched]
+        if add_ingredients or remove_ingredients:
+            add_ingredients = [add.resource_uri for add in add_ingredients]
+            remove_ingredients = [add.resource_uri for add in
+                                  remove_ingredients]
+            assert not (set(add_ingredients) & set(remove_ingredients)), \
+                "Can't add and remove same ingredients during a single run"
+
+            for swarm in matched:
+                new_ingredients = _assemble_ingredients(
+                    swarm.config_ingredients,
+                    add_ingredients,
+                    remove_ingredients)
+                swarm_changes = merge_dicts(changes,
+                                            {'config_ingredients':
+                                             new_ingredients})
+                swarm.dispatch(**swarm_changes)
+
+        else:
+            if replace_ingredients:
+                changes['config_ingredients'] = [ing.resource_uri for ing
+                                                 in replace_ingredients]
+            [swarm.dispatch(**changes) for swarm in matched]
+            pass
 
 
 class Build(cmdline.Command):
@@ -247,6 +297,33 @@ def _get_swarms(args):
     params = _parse_swarm_params(args.filter)
     logging.info('Searching for swarms: %s', params)
     return models.Swarm.load_all(args.vr, params)
+
+
+def _resolve_ingredients(vr, ingredients):
+    if not ingredients:
+        return ingredients
+    return [models.Ingredient.by_id(vr, ing) if ing.isdigit() else
+            models.Ingredient.by_name(vr, ing) for ing in ingredients]
+
+
+def _assemble_ingredients(old_ingredients, add_ingredients,
+                          remove_ingredients):
+    new_ingredients = old_ingredients + [add for add in add_ingredients if
+                                         add not in old_ingredients]
+    new_ingredients = [new for new in new_ingredients if
+                       new not in remove_ingredients]
+    return new_ingredients
+
+
+def merge_dicts(*dict_args):
+    """
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
 
 
 def handle_command_line():
