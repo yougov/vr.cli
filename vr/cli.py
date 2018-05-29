@@ -358,3 +358,7 @@ def handle_command_line():
     jaraco.logging.setup(args, format='%(message)s')
     args.vr = models.Velociraptor(args.url, args.username)
     args.action.run(args)
+
+
+if __name__ == "__main__":
+    handle_command_line()
