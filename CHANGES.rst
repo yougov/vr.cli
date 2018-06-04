@@ -1,3 +1,8 @@
+3.2
+---
+
+Add support for selecting swarms by ingredients they use.
+
 3.1
 ---
 

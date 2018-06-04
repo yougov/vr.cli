@@ -10,12 +10,14 @@ import pprint
 import argparse
 import logging
 import os
+from os.path import normpath, basename
 
 from six.moves import map
 
 import datadiff
 import jaraco.logging
 from more_itertools.recipes import consume
+from itertools import chain
 from jaraco import timing
 from jaraco.ui import cmdline, progress
 from jaraco.functools import once
@@ -57,6 +59,12 @@ class Swarm(cmdline.Command):
                                  "existing ingredient list for each swarm.",
                             nargs='+')
 
+        parser.add_argument('--by-ingredients',
+                            default=[],
+                            help="Matches all swarms that include at least "
+                                 "one of the ingredients from the list.",
+                            nargs='+')
+
     @classmethod
     def run(cls, args):
         swarms = _get_swarms(args)
@@ -70,8 +78,15 @@ class Swarm(cmdline.Command):
                                                   args.remove_ingredients)
         replace_ingredients = _resolve_ingredients(args.vr,
                                                    args.replace_ingredients)
+        by_ingredients = _resolve_ingredients(args.vr,
+                                              args.by_ingredients)
 
         matched = list(args.filter.matches(swarms))
+        more_swarms = chain(*[ing.swarms for ing in by_ingredients])
+        more_swarms = [models.Swarm.by_id(
+            args.vr, basename(normpath(base_url))) for base_url in more_swarms]
+        matched = list(set(matched) | set(more_swarms))
+
         print("Matched", len(matched), "apps")
         pprint.pprint(matched)
         if args.countdown:
@@ -342,3 +357,7 @@ def handle_command_line():
     jaraco.logging.setup(args, format='%(message)s')
     args.vr = models.Velociraptor(args.url, args.username)
     args.action.run(args)
+
+
+if __name__ == "__main__":
+    handle_command_line()
