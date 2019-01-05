@@ -1,3 +1,8 @@
+3.3
+---
+
+Removed deprecated dependencies and refreshed package metadata.
+
 3.2
 ---
 
