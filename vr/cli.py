@@ -18,7 +18,7 @@ import datadiff
 import jaraco.logging
 from more_itertools.recipes import consume
 from itertools import chain
-from jaraco import timing
+from tempora import timing
 from jaraco.ui import cmdline, progress
 from jaraco.functools import once
 
