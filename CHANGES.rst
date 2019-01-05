@@ -1,3 +1,8 @@
+3.4
+---
+
+Pin against vr.common 6 for namespace compatibility.
+
 3.3
 ---
 
