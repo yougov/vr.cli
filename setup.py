@@ -30,7 +30,7 @@ params = dict(
     namespace_packages=name.split('.')[:-1],
     python_requires='>=3.5',
     install_requires=[
-        'jaraco.functools>=1.0,<2dev',
+        'jaraco.functools>=1.0',
         'vr.common>=5.4',
         'more_itertools',
         'six',
