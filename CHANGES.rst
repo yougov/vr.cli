@@ -1,5 +1,5 @@
-4.0.1
------
+4.1
+---
 
 Added usage message when script is called without any arguments.
 
