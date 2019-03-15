@@ -1,3 +1,8 @@
+4.1
+---
+
+Added usage message when script is called without any arguments.
+
 4.0
 ---
 

@@ -356,7 +356,11 @@ def handle_command_line():
     args = parser.parse_args()
     jaraco.logging.setup(args, format='%(message)s')
     args.vr = models.Velociraptor(args.url, args.username)
-    args.action.run(args)
+    try:
+        args.action.run(args)
+    except AttributeError:
+        parser.print_usage()
+        parser.exit(1)
 
 
 if __name__ == "__main__":
