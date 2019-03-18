@@ -4,16 +4,12 @@ in routines for performing common operations. Invoke using
 the `vr.cli` console entry point or with `python -m vr.cli`.
 """
 
-from __future__ import print_function
-
 import pprint
 import argparse
 import logging
 import os
 import itertools
 from os.path import normpath, basename
-
-from six.moves import map
 
 import datadiff
 import jaraco.logging
@@ -163,7 +159,7 @@ class RebuildAll(cmdline.Command):
             swarm.dispatch()
 
 
-class FilterParam(object):
+class FilterParam:
 
     @classmethod
     def add_arguments(cls, parser):
