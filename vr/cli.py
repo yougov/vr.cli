@@ -10,6 +10,7 @@ import logging
 import os
 import itertools
 import posixpath
+import functools
 
 import datadiff
 import jaraco.logging
@@ -88,13 +89,11 @@ class Swarm(cmdline.Command):
             "Replacing ingredients is mutually exclusive with adding or " \
             "removing them."
 
-        add_ingredients = _resolve_ingredients(args.vr, args.add_ingredients)
-        remove_ingredients = _resolve_ingredients(args.vr,
-                                                  args.remove_ingredients)
-        replace_ingredients = _resolve_ingredients(args.vr,
-                                                   args.replace_ingredients)
-        by_ingredients = _resolve_ingredients(args.vr,
-                                              args.by_ingredients)
+        _resolve = functools.partial(_resolve_ingredients, args.vr)
+        add_ingredients = _resolve(args.add_ingredients)
+        remove_ingredients = _resolve(args.remove_ingredients)
+        replace_ingredients = _resolve(args.replace_ingredients)
+        by_ingredients = _resolve(args.by_ingredients)
 
         matched = list(args.filter.matches(swarms))
         more_swarms = itertools.chain(*[ing.swarms for ing in by_ingredients])
