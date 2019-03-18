@@ -329,6 +329,10 @@ def _resolve_ingredients(vr, ingredients):
 
 def _assemble_ingredients(old_ingredients, add_ingredients,
                           remove_ingredients):
+    """
+    >>> _assemble_ingredients(['a', 'b', 'd'], ['a', 'c'], ['d'])
+    ['a', 'b', 'c']
+    """
     return list(itertools.filterfalse(
         remove_ingredients.__contains__,
         unique_everseen(itertools.chain(
