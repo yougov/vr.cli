@@ -11,6 +11,7 @@ import os
 import itertools
 import posixpath
 import functools
+import operator
 
 import datadiff
 import jaraco.logging
@@ -115,27 +116,38 @@ class Swarm(cmdline.Command):
             changes['version'] = args.tag
         if args.squad:
             changes['squad'] = args.squad
-        if add_ingredients or remove_ingredients:
-            add_ingredients = [add.resource_uri for add in add_ingredients]
-            remove_ingredients = [add.resource_uri for add in
-                                  remove_ingredients]
+        for swarm in matched:
+            changes.pop('config_ingredients', None)
+            changes.update(Ingredients.changes(
+                swarm.config_ingredients,
+                add_ingredients,
+                remove_ingredients,
+                replace_ingredients,
+            ))
+            swarm.dispatch(**changes)
 
-            for swarm in matched:
-                new_ingredients = _assemble_ingredients(
-                    swarm.config_ingredients,
-                    add_ingredients,
-                    remove_ingredients)
-                swarm_changes = merge_dicts(changes,
-                                            {'config_ingredients':
-                                             new_ingredients})
-                swarm.dispatch(**swarm_changes)
 
-        else:
-            if replace_ingredients:
-                changes['config_ingredients'] = [ing.resource_uri for ing
-                                                 in replace_ingredients]
-            for swarm in matched:
-                swarm.dispatch(**changes)
+class Ingredients:
+    @classmethod
+    def changes(cls, orig, add, remove, replace):
+        add = cls.urls(add)
+        remove = cls.urls(remove)
+        replace = cls.urls(replace)
+        resolved = replace or cls.assemble(orig, add, remove)
+        return dict(config_ingredients=resolved) if resolved else {}
+
+    def urls(ingredients):
+        return list(map(operator.attrgetter('resource_uri', ingredients)))
+
+    def assemble(orig, add, remove):
+        """
+        >>> Ingredients.assemble(['a', 'b', 'd'], ['a', 'c', 'e'], ['d', 'e'])
+        ['a', 'b', 'c']
+        """
+        return list(itertools.filterfalse(
+            remove.__contains__,
+            unique_everseen(itertools.chain(orig, add)),
+        ))
 
 
 class Build(cmdline.Command):
@@ -342,19 +354,6 @@ def _resolve_ingredients(vr, ingredients):
         )
         for ing in ingredients
     ]
-
-
-def _assemble_ingredients(old_ingredients, add_ingredients,
-                          remove_ingredients):
-    """
-    >>> _assemble_ingredients(['a', 'b', 'd'], ['a', 'c', 'e'], ['d', 'e'])
-    ['a', 'b', 'c']
-    """
-    return list(itertools.filterfalse(
-        remove_ingredients.__contains__,
-        unique_everseen(itertools.chain(
-            old_ingredients, add_ingredients)),
-    ))
 
 
 def merge_dicts(*dict_args):
