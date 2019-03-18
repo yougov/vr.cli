@@ -83,8 +83,13 @@ class Swarm(cmdline.Command):
 
         matched = list(args.filter.matches(swarms))
         more_swarms = itertools.chain(*[ing.swarms for ing in by_ingredients])
-        more_swarms = [models.Swarm.by_id(
-            args.vr, basename(normpath(base_url))) for base_url in more_swarms]
+        more_swarms = [
+            models.Swarm.by_id(
+                args.vr,
+                basename(normpath(base_url))
+            )
+            for base_url in more_swarms
+        ]
         matched = list(set(matched) | set(more_swarms))
 
         print("Matched", len(matched), "apps")
