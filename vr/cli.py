@@ -119,8 +119,6 @@ class Swarm(cmdline.Command):
             add_ingredients = [add.resource_uri for add in add_ingredients]
             remove_ingredients = [add.resource_uri for add in
                                   remove_ingredients]
-            assert not (set(add_ingredients) & set(remove_ingredients)), \
-                "Can't add and remove same ingredients during a single run"
 
             for swarm in matched:
                 new_ingredients = _assemble_ingredients(
