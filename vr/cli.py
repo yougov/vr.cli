@@ -331,8 +331,14 @@ def _get_swarms(args):
 
 
 def _resolve_ingredients(vr, ingredients):
-    return [models.Ingredient.by_id(vr, ing) if ing.isdigit() else
-            models.Ingredient.by_name(vr, ing) for ing in ingredients]
+    return [
+        (
+            models.Ingredient.by_id(vr, ing)
+            if ing.isdigit() else
+            models.Ingredient.by_name(vr, ing)
+        )
+        for ing in ingredients
+    ]
 
 
 def _assemble_ingredients(old_ingredients, add_ingredients,
