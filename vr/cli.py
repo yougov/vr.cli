@@ -331,8 +331,6 @@ def _get_swarms(args):
 
 
 def _resolve_ingredients(vr, ingredients):
-    if not ingredients:
-        return ingredients
     return [models.Ingredient.by_id(vr, ing) if ing.isdigit() else
             models.Ingredient.by_name(vr, ing) for ing in ingredients]
 
