@@ -14,7 +14,6 @@ from os.path import normpath, basename
 import datadiff
 import jaraco.logging
 from more_itertools import consume, unique_everseen
-from itertools import chain
 from tempora import timing
 from jaraco.ui import cmdline, progress
 from jaraco.functools import once
@@ -83,7 +82,7 @@ class Swarm(cmdline.Command):
                                               args.by_ingredients)
 
         matched = list(args.filter.matches(swarms))
-        more_swarms = chain(*[ing.swarms for ing in by_ingredients])
+        more_swarms = itertools.chain(*[ing.swarms for ing in by_ingredients])
         more_swarms = [models.Swarm.by_id(
             args.vr, basename(normpath(base_url))) for base_url in more_swarms]
         matched = list(set(matched) | set(more_swarms))
