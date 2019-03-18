@@ -10,13 +10,14 @@ import pprint
 import argparse
 import logging
 import os
+import itertools
 from os.path import normpath, basename
 
 from six.moves import map
 
 import datadiff
 import jaraco.logging
-from more_itertools.recipes import consume
+from more_itertools import consume, unique_everseen
 from itertools import chain
 from tempora import timing
 from jaraco.ui import cmdline, progress
@@ -328,11 +329,11 @@ def _resolve_ingredients(vr, ingredients):
 
 def _assemble_ingredients(old_ingredients, add_ingredients,
                           remove_ingredients):
-    new_ingredients = old_ingredients + [add for add in add_ingredients if
-                                         add not in old_ingredients]
-    new_ingredients = [new for new in new_ingredients if
-                       new not in remove_ingredients]
-    return new_ingredients
+    return list(itertools.filterfalse(
+        remove_ingredients.__contains__,
+        unique_everseen(itertools.chain(
+            old_ingredients, add_ingredients)),
+    ))
 
 
 def merge_dicts(*dict_args):
