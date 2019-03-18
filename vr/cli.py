@@ -64,6 +64,10 @@ class Swarm(cmdline.Command):
                             help="Matches all swarms that include at least "
                                  "one of the ingredients from the list.",
                             nargs='+')
+        parser.add_argument(
+            '--squad',
+            help="Set the squad (API path) when swarming",
+        )
 
     @classmethod
     def run(cls, args):
@@ -94,6 +98,8 @@ class Swarm(cmdline.Command):
         changes = dict()
         if args.tag != '-':
             changes['version'] = args.tag
+        if args.squad:
+            changes['squad'] = args.squad
         if add_ingredients or remove_ingredients:
             add_ingredients = [add.resource_uri for add in add_ingredients]
             remove_ingredients = [add.resource_uri for add in

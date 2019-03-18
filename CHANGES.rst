@@ -1,3 +1,8 @@
+4.2
+---
+
+Added support for changing a squad of a swarm during a swarm operation.
+
 4.1
 ---
 
