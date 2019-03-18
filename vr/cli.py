@@ -136,7 +136,8 @@ class Swarm(cmdline.Command):
             if replace_ingredients:
                 changes['config_ingredients'] = [ing.resource_uri for ing
                                                  in replace_ingredients]
-            [swarm.dispatch(**changes) for swarm in matched]
+            for swarm in matched:
+                swarm.dispatch(**changes)
 
 
 class Build(cmdline.Command):
