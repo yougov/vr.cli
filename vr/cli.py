@@ -19,6 +19,7 @@ from more_itertools import consume, unique_everseen
 from tempora import timing
 from jaraco.ui import cmdline, progress
 from jaraco.functools import once
+from jaraco.collections import DictStack
 
 from vr.common import models
 
@@ -117,14 +118,16 @@ class Swarm(cmdline.Command):
         if args.squad:
             changes['squad'] = args.squad
         for swarm in matched:
-            changes.pop('config_ingredients', None)
-            changes.update(Ingredients.changes(
-                swarm.config_ingredients,
-                add_ingredients,
-                remove_ingredients,
-                replace_ingredients,
-            ))
-            swarm.dispatch(**changes)
+            merged = DictStack([
+                changes,
+                Ingredients.changes(
+                    swarm.config_ingredients,
+                    add_ingredients,
+                    remove_ingredients,
+                    replace_ingredients,
+                ),
+            ])
+            swarm.dispatch(**merged)
 
 
 class Ingredients:
