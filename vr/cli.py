@@ -9,7 +9,7 @@ import argparse
 import logging
 import os
 import itertools
-from os.path import normpath, basename
+import posixpath
 
 import datadiff
 import jaraco.logging
@@ -19,6 +19,16 @@ from jaraco.ui import cmdline, progress
 from jaraco.functools import once
 
 from vr.common import models
+
+
+def last_segment(url):
+    """
+    >>> last_segment('https://host/foo/123/')
+    '123'
+    >>> last_segment('https://host/foo/456')
+    '456'
+    """
+    return posixpath.basename(posixpath.normpath(url))
 
 
 class FilterExcludeAction(argparse.Action):
@@ -86,7 +96,7 @@ class Swarm(cmdline.Command):
         more_swarms = [
             models.Swarm.by_id(
                 args.vr,
-                basename(normpath(base_url))
+                last_segment(base_url)
             )
             for base_url in more_swarms
         ]
