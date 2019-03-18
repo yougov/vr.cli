@@ -47,29 +47,34 @@ class Swarm(cmdline.Command):
             default=False,
             help="Give a 5 second countdown before dispatching swarms.",
         )
-        parser.add_argument('--add-ingredients',
-                            default=[],
-                            help="List of ingredients to be appended to the "
-                                 "end of ingredient list of each swarm.",
-                            nargs='+')
 
-        parser.add_argument('--remove-ingredients',
-                            default=[],
-                            help="List of ingredients to be removed from each "
-                                 "swarm.",
-                            nargs='+')
+        parser.add_argument(
+            '--add-ingredients',
+            default=[],
+            help="List of ingredients to be appended to the "
+            "end of ingredient list of each swarm.",
+            nargs='+')
 
-        parser.add_argument('--replace-ingredients',
-                            default=[],
-                            help="List of ingredients to completely replace "
-                                 "existing ingredient list for each swarm.",
-                            nargs='+')
+        parser.add_argument(
+            '--remove-ingredients',
+            default=[],
+            help="List of ingredients to be removed from each swarm.",
+            nargs='+')
 
-        parser.add_argument('--by-ingredients',
-                            default=[],
-                            help="Matches all swarms that include at least "
-                                 "one of the ingredients from the list.",
-                            nargs='+')
+        parser.add_argument(
+            '--replace-ingredients',
+            default=[],
+            help="List of ingredients to completely replace "
+            "existing ingredient list for each swarm.",
+            nargs='+')
+
+        parser.add_argument(
+            '--by-ingredients',
+            default=[],
+            help="Matches all swarms that include at least "
+            "one of the ingredients from the list.",
+            nargs='+')
+
         parser.add_argument(
             '--squad',
             help="Set the squad (API path) when swarming",
